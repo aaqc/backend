@@ -1,11 +1,9 @@
-# backend
-HOW TO BUILD IT:
-sudo docker build -t aaqc-backend .
+# Backend
 
+## How to install and use with VSCode
 
-HOW TO RUN IT:
-sudo docker run -p 8080:8080 aaqc-backend
+![Gif showing how to use](how-to-use.gif)
 
+## Start devserver in container in debug mode:
 
-HOW TO RUN IT IN THE BACKGROUND:
-sudo docker -d run -p 8080:8080 aaqc-backend
+`/start-reload.sh`
