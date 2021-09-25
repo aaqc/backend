@@ -3,4 +3,5 @@ services:
   core_api:
     volumes:
       - .:/workspace:cached
+      - ./app:/app
     command: /bin/sh -c "while sleep 1000; do :; done"
