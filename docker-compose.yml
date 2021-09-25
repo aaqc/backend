@@ -4,6 +4,4 @@ services:
     container_name: "aaqc-backend"
     build: .
     ports:
-      - 8000:8080
-    volumes:
-      - ./app:/app
+      - 8000:80
