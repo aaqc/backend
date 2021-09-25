@@ -13,12 +13,12 @@ def index():
 
 @app.get("/active_connections")
 def active_connections():
-    """Returns how many active-connections with the websocket!
+    """Returns how many active connections there are with the websocket!
     
     Returns:
-        [int]: [Length of manager.active_connections witch is a list]
+        [int]: [Length of manager.active_connections]
     """    
-    return {"active-connections": len(manager.active_connections)}
+    return {"active_connections": len(manager.active_connections)}
 
 
 @app.get("/websocket")
