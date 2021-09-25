@@ -4,8 +4,8 @@ from typing import Optional
 app = FastAPI()
 
 @app.get("/")
-def read_root():
-    return {"Hello": "World"}
+def index():
+    return {"Test": "Good job"}
 
 
 @app.get("/items/{item_id}")
@@ -58,3 +58,6 @@ async def websocket_endpoint(websocket: WebSocket):
     while True:
         data = await websocket.receive_text()
         await websocket.send_text(f"Message text was: {data}")
+
+if __name__ == "__main__":
+    app.run(app, host="0.0.0.0", port=8080, debug=True)
