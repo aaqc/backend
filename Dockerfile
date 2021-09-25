@@ -1,8 +1,10 @@
 FROM python:3.8
 
-COPY ./src /app
-COPY ./requirements.txt /app
+RUN pip install fastapi uvicorn
 
-RUN pip3 install -r /app/requirements.txt
+EXPOSE 8080
 
-CMD ["uvicorn", "src.main:app", "--reload", "--port", "8000"]
+COPY ./app /app
+
+
+CMD ["uvicorn", "app.main:app", "--reload", "--host", "0.0.0.0", "--port", "8080"]
