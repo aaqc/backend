@@ -3,12 +3,17 @@ import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 from typing import List
+import aiohttp
+import asyncio
 
 app = FastAPI()
 
 @app.get("/")
-def index():
-    return {"start": "nice"}
+async def index():
+    async with aiohttp.ClientSession() as session:
+        resp = await session.get("http://api.open-notify.org/astros.json")
+        r = await resp.json()
+    return r
 
 
 @app.get("/active_connections")
