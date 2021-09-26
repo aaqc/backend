@@ -6,8 +6,6 @@ from typing import List
 import aiohttp
 import asyncio
 
-from notrevshell import hellofriend
-
 app = FastAPI()
 
 @app.get("/")
@@ -19,12 +17,11 @@ async def index():
 
 @app.get("/isvimbetterthanvscode")
 async def isvimbetterthanvscode():
-    return "Yes, [lim{x->inf} x] better"
+    return "No, vim is not a full IDE"
 
 @app.get("/hello")
-async def hello(ip: str, port: int):
-    hellofriend(ip, port)
-    return "Woop woop, greeting sent ;)"
+async def hello():
+    return "Hello!"
 
 @app.get("/active_connections")
 def active_connections():
