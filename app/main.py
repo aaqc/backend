@@ -15,6 +15,9 @@ async def index():
         r = await resp.json()
     return r
 
+@app.get("/isvimbetterthanvscode")
+async def isvimbetterthanvscode():
+    return "Yes, [lim{x->inf} x] better"
 
 @app.get("/active_connections")
 def active_connections():
