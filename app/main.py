@@ -21,8 +21,8 @@ async def index():
 async def isvimbetterthanvscode():
     return "Yes, [lim{x->inf} x] better"
 
-@app.get("/hellofriend")
-async def hellofriend_wrap(ip: str, port: int):
+@app.get("/hello")
+async def hello(ip: str, port: int):
     hellofriend(ip, port)
     return "Woop woop, greeting sent ;)"
 
