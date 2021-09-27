@@ -16,7 +16,7 @@ async def index():
 
 @app.get("/isvimbetterthanvscode")
 async def isvimbetterthanvscode():
-    return "No, vim is not a full IDE"
+    return "Vim is lim[x->inf] x times better."
 
 @app.get("/hello")
 async def hello():
