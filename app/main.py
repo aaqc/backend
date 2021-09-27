@@ -2,6 +2,8 @@ from gateway import construct, construct_error, handle_message
 from logging import Logger, debug
 from typing import Optional
 from starlette.responses import PlainTextResponse
+from logging import debug
+from starlette.responses import JSONResponse
 import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
@@ -22,15 +24,12 @@ manager = ConnectionManager()
 
 @app.get("/")
 async def index():
-    async with aiohttp.ClientSession() as session:
-        resp = await session.get("http://api.open-notify.org/astros.json")
-        r = await resp.json()
-    return r
+    return {"isvimbetterthanvscode":"yes, but nano is better"}
 
 
 @app.get("/isvimbetterthanvscode")
 async def isvimbetterthanvscode():
-    return "No, vim is not a full IDE"
+    return "Vim is lim[x->inf] x times better., but nano is lim[x->inf] x better than VIM and vscode"
 
 
 @app.websocket("/gateway")
