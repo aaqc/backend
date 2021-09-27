@@ -1,4 +1,5 @@
 from logging import debug
+from starlette.responses import JSONResponse
 import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
@@ -8,12 +9,10 @@ import asyncio
 
 app = FastAPI()
 
+
 @app.get("/")
 async def index():
-    async with aiohttp.ClientSession() as session:
-        resp = await session.get("http://api.open-notify.org/astros.json")
-        r = await resp.json()
-    return r
+    return {"isvimbetterthanvscode":"yes"}
 
 
 @app.get("/active_connections")
