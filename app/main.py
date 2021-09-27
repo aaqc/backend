@@ -24,16 +24,16 @@ manager = ConnectionManager()
 
 @app.get("/")
 async def index():
-    return {"isvimbetterthanvscode":"yes, but nano is better"}
+    return {"isvimbetterthanvscode": "no, but nano is also worse"}
 
 
 @app.get("/isvimbetterthanvscode")
 async def isvimbetterthanvscode():
-    return "Vim is lim[x->inf] x times better., but nano is lim[x->inf] x better than VIM and vscode"
+    return "Vim is lim[x->inf] x times worse., but nano is lim[x->inf] x worse than VIM and vscode"
 
 
 @app.websocket("/gateway")
-async def connect_to_gateway(websocket: WebSocket):
+async def connect_client_to_gateway(websocket: WebSocket):
     con_id = await manager.connect_client(websocket)
     try:
         while True:
@@ -45,7 +45,7 @@ async def connect_to_gateway(websocket: WebSocket):
 
             try:
                 await websocket.send_json(handle_message(data, manager))
-            except Exception as error:
+            except Exception:
                 logger.error(format_exc())
                 await websocket.send_json(construct_error("generic-error"))
 
