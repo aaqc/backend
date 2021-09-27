@@ -44,7 +44,7 @@ async def connect_to_gateway(websocket: WebSocket):
                 continue
 
             try:
-                await websocket.send_json(handle_message(data))
+                await websocket.send_json(handle_message(data, manager))
             except Exception as error:
                 logger.error(format_exc())
                 await websocket.send_json(construct_error("generic-error"))

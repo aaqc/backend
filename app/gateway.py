@@ -1,3 +1,4 @@
+from connection_manager import ConnectionManager
 from typing import Any, Optional, Union
 from time import time_ns
 import typing
@@ -13,7 +14,7 @@ error_msgs = {
 error_types = {
     NotImplementedError: "not-implemeneted",
     TypeError: "message-type-invalid",
-    KeyError: "message-type-missing"
+    KeyError: "message-type-missing",
 }
 
 
@@ -34,7 +35,7 @@ def construct(
     return payload
 
 
-def handle_message(message: Any):
+def handle_message(message: Any, manager: ConnectionManager):
     t: str = ""
     if "type" in message:
         t = message["type"]
@@ -51,11 +52,19 @@ def handle_message(message: Any):
         if t == "ping":
             return "pong", None
         elif t == "log":
-            return "ok", None
+            return "ack", None
+        elif t == "time":
+            return "time", {"utc_ns": time_ns()}
+        elif t == "who":
+            return "who", {
+                "clients": list(manager.clients.keys()),
+                "providers": list(manager.providers.keys()),
+                "count": len(manager.connections),
+            }
 
         raise NotImplementedError("Message type is not implemented")
 
-    try: 
+    try:
         return construct(*handle_data(), nonce)
     except (TypeError, NotImplementedError, KeyError) as error:
         return construct_error(error_types[type(error)])
