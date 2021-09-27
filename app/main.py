@@ -1,12 +1,24 @@
-from logging import debug
+from gateway import construct, construct_error, handle_message
+from logging import Logger, debug
+from typing import Optional
+from starlette.responses import PlainTextResponse
 import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
-from typing import List
 import aiohttp
-import asyncio
+from connection_manager import ConnectionManager
+from json.decoder import JSONDecodeError
+from time import time_ns
+from fastapi.logger import logger
+from traceback import format_exc
+
+logger: Logger
+
 
 app = FastAPI()
+
+manager = ConnectionManager()
+
 
 @app.get("/")
 async def index():
@@ -15,60 +27,67 @@ async def index():
         r = await resp.json()
     return r
 
+
 @app.get("/isvimbetterthanvscode")
 async def isvimbetterthanvscode():
     return "No, vim is not a full IDE"
 
-@app.get("/hello")
-async def hello():
-    return "Hello!"
 
-@app.get("/active_connections")
-def active_connections():
-    """Returns how many active connections there are with the websocket!
-    
-    Returns:
-        [int]: [Length of manager.active_connections]
-    """    
-    return {"active_connections": len(manager.active_connections)}
-
-
-@app.get("/websocket")
-async def get():
-    html = open("./websocket-example.html", "r").read()
-    return HTMLResponse(html)
-
-@app.websocket("/ws/{client_id}")
-async def websocket_endpoint(websocket: WebSocket, client_id: int):
-    await manager.connect(websocket)
+@app.websocket("/gateway")
+async def connect_to_gateway(websocket: WebSocket):
+    con_id = await manager.connect_client(websocket)
     try:
         while True:
-            data = await websocket.receive_text()
-            await manager.send_personal_message(f"You wrote: {data}", websocket)
-            await manager.broadcast(f"Client #{client_id} says: {data}")
+            try:
+                data = await websocket.receive_json()
+            except JSONDecodeError:
+                await websocket.send_json(construct_error("json-decode-error"))
+                continue
+
+            try:
+                await websocket.send_json(handle_message(data))
+            except Exception as error:
+                logger.error(format_exc())
+                await websocket.send_json(construct_error("generic-error"))
+
     except WebSocketDisconnect:
-        manager.disconnect(websocket)
-        await manager.broadcast(f"Client #{client_id} left the chat")
+        await manager.disconnect_client(con_id)
+        await manager.broadcast(construct("disconnect", {"id": con_id}))
 
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: List[WebSocket] = []
 
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.active_connections.append(websocket)
+@app.get("/gateway")
+async def status_of_gateway():
+    return {"online": True}
 
-    def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
 
-    async def send_personal_message(self, message: str, websocket: WebSocket):
-        await websocket.send_text(message)
+@app.get("/ping")
+async def hello():
+    return PlainTextResponse("pong")
 
-    async def broadcast(self, message: str):
-        for connection in self.active_connections:
-            await connection.send_text(message)
 
-manager = ConnectionManager()
+@app.get("/gateway/connections")
+def active_connections():
+    """Returns how many clients and providers are connected to this gateway"""
+    return {"count": len(manager.connections)}
+
+
+# @app.get("/websocket")
+# async def get():
+#     html = open("./websocket-example.html", "r").read()
+#     return HTMLResponse(html)
+
+
+# @app.websocket("/ws/{client_id}")
+# async def websocket_endpoint(websocket: WebSocket, client_id: int):
+#     await manager.connect(websocket)
+#     try:
+#         while True:
+#             data = await websocket.receive_text()
+#             await manager.send_personal_message(f"You wrote: {data}", websocket)
+#             await manager.broadcast(f"Client #{client_id} says: {data}")
+#     except WebSocketDisconnect:
+#         manager.disconnect(websocket)
+#         await manager.broadcast(f"Client #{client_id} left the chat")
 
 
 if __name__ == "__main__":

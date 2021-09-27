@@ -1,0 +1,61 @@
+from typing import Any, Optional, Union
+from time import time_ns
+import typing
+
+error_msgs = {
+    "json-decode-error": "Message could not be parsed",
+    "message-type-missing": "The type parameter is missing",
+    "message-type-invalid": "The type parameter is of incorrect type (should be string)",
+    "not-implemeneted": "The message type is not implemented",
+    "generic-error": "Something went wrong, check logs",
+}
+
+error_types = {
+    NotImplementedError: "not-implemeneted",
+    TypeError: "message-type-invalid",
+    KeyError: "message-type-missing"
+}
+
+
+def construct_error(name: str):
+    return construct("error", {"message": error_msgs[name], "name": name})
+
+
+def construct(
+    _type: str,
+    data: Optional[Union[dict[Any, Any], list[Any]]] = None,
+    nonce: Optional[Any] = None,
+):
+    payload = {"type": _type}
+    if data is not None:
+        payload |= {"data": data}
+    if nonce is not None:
+        payload |= {"nonce": nonce}
+    return payload
+
+
+def handle_message(message: Any):
+    t: str = ""
+    if "type" in message:
+        t = message["type"]
+        if type(t) != str:
+            raise TypeError("Message type was off incorrect type")
+    else:
+        raise KeyError("Message type missing")
+
+    nonce: Optional[Any] = None
+    if "nonce" in message:
+        nonce = message["nonce"]
+
+    def handle_data() -> tuple[str, Any]:
+        if t == "ping":
+            return "pong", None
+        elif t == "log":
+            return "ok", None
+
+        raise NotImplementedError("Message type is not implemented")
+
+    try: 
+        return construct(*handle_data(), nonce)
+    except (TypeError, NotImplementedError, KeyError) as error:
+        return construct_error(error_types[type(error)])
