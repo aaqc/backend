@@ -49,7 +49,7 @@ def handle_message(message: Any, manager: ConnectionManager):
     if "nonce" in message:
         nonce = message["nonce"]
 
-    #try:
-    return construct(*handle_data(manager, t), nonce)
-    #except (TypeError, NotImplementedError, KeyError) as error:
-    #    return construct_error(error_types[type(error)])
+    try:
+        return construct(*handle_data(manager, t), nonce)
+    except (TypeError, NotImplementedError, KeyError) as error:
+        return construct_error(error_types[type(error)])
