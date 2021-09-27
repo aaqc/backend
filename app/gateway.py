@@ -1,6 +1,7 @@
 from connection_manager import ConnectionManager
 from typing import Any, Optional, Union
 from time import time_ns
+from handle_data import handle_data
 import typing
 
 error_msgs = {
@@ -48,23 +49,7 @@ def handle_message(message: Any, manager: ConnectionManager):
     if "nonce" in message:
         nonce = message["nonce"]
 
-    def handle_data() -> tuple[str, Any]:
-        if t == "ping":
-            return "pong", None
-        elif t == "log":
-            return "ack", None
-        elif t == "time":
-            return "time", {"utc_ns": time_ns()}
-        elif t == "who":
-            return "who", {
-                "clients": list(manager.clients.keys()),
-                "providers": list(manager.providers.keys()),
-                "count": len(manager.connections),
-            }
-
-        raise NotImplementedError("Message type is not implemented")
-
     try:
-        return construct(*handle_data(), nonce)
+        return construct(*handle_data(manager, t), nonce)
     except (TypeError, NotImplementedError, KeyError) as error:
         return construct_error(error_types[type(error)])
