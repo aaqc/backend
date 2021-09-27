@@ -3,3 +3,5 @@ uvicorn
 websockets
 black
 pylint
+aiohttp
+aiodns

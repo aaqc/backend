@@ -14,6 +14,13 @@ app = FastAPI()
 async def index():
     return {"isvimbetterthanvscode":"yes"}
 
+@app.get("/isvimbetterthanvscode")
+async def isvimbetterthanvscode():
+    return "No, vim is not a full IDE"
+
+@app.get("/hello")
+async def hello():
+    return "Hello!"
 
 @app.get("/active_connections")
 def active_connections():
@@ -27,7 +34,7 @@ def active_connections():
 
 @app.get("/websocket")
 async def get():
-    html = open("./app/websocket-example.html", "r").read()
+    html = open("./websocket-example.html", "r").read()
     return HTMLResponse(html)
 
 @app.websocket("/ws/{client_id}")
