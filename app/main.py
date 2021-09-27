@@ -12,11 +12,11 @@ app = FastAPI()
 
 @app.get("/")
 async def index():
-    return {"isvimbetterthanvscode":"yes"}
+    return {"isvimbetterthanvscode":"yes, but nano is better"}
 
 @app.get("/isvimbetterthanvscode")
 async def isvimbetterthanvscode():
-    return "Vim is lim[x->inf] x times better."
+    return "Vim is lim[x->inf] x times better., but nano is lim[x->inf] x better than VIM and vscode"
 
 @app.get("/hello")
 async def hello():
