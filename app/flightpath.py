@@ -1,11 +1,11 @@
 #!/usr/bin/python
 
 from token_handler import get_token
-import requests
+# import requests
 import math
 
 import aiohttp
-import asyncio
+# import asyncio
 
 google_maps_token = get_token("google_maps")
 
