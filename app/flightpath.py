@@ -28,6 +28,15 @@ def get_path_distance(start_coords: tuple, end_coords: tuple) -> dict:
 
     return {"km": earth_radius * c, "m": earth_radius * c * 1000 }
 
+def get_delta_angle(dy: float, dist: float) -> float:
+    sin = dy / dist
+    angle_rad = math.asin(sin)
+    angle = (angle_rad/(math.pi*2))*360
+
+    if( angle > 180 ):
+        angle -= 360
+
+    return angle
 
 async def get_waypoints(start_coords: tuple, end_coords: tuple, points: int):
     lat1, lng1 = start_coords
