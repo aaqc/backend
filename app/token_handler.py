@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+# TODO: do better handling
+
 import os
 user_home = os.path.expanduser('~')
 
