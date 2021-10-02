@@ -32,10 +32,7 @@ def get_delta_angle(dy: float, dist: float) -> float:
     sin = dy / dist
     angle = math.degrees( math.asin(sin) )
 
-    if( angle > 180 ):
-        angle -= 360
-
-    return angle
+    return angle if angle < 180 else angle - 360
 
 async def get_waypoints(start_coords: tuple, end_coords: tuple, points: int):
     lat1, lng1 = start_coords
