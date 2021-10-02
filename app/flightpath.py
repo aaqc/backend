@@ -9,7 +9,7 @@ import aiohttp
 
 google_maps_token = get_token("google_maps")
 
-def get_path_distance(start_coords: tuple, end_coords: tuple):
+def get_path_distance(start_coords: tuple, end_coords: tuple) -> dict:
     lat1, lng1 = start_coords
     lat2, lng2 = end_coords
 
@@ -26,7 +26,8 @@ def get_path_distance(start_coords: tuple, end_coords: tuple):
 
     c = 2 * math.asin(math.sqrt(haversine_formula))
 
-    return {"km": earth_radius * c, "m" :earth_radius * c * 1000 }
+    return {"km": earth_radius * c, "m": earth_radius * c * 1000 }
+
 
 async def get_waypoints(start_coords: tuple, end_coords: tuple, points: int):
     lat1, lng1 = start_coords
