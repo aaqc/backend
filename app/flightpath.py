@@ -7,6 +7,7 @@ import math
 import aiohttp
 import asyncio
 from typing import Awaitable
+from typing import Any
 
 google_maps_token = get_token("google_maps")
 
@@ -38,7 +39,7 @@ async def get_delta_angle(dy: float, dist: float) -> Awaitable[float]:
 async def get_new_angle(d_angle: float, cur_angle: float) -> Awaitable[float]:
     return d_angle - cur_angle
 
-async def get_waypoints(start_coords: tuple, end_coords: tuple, points: int) -> Awaitable[dict]:
+async def get_waypoints(start_coords: tuple, end_coords: tuple, points: int) -> Awaitable[Any]:
     lat1, lng1 = start_coords
     lat2, lng2 = end_coords
 
@@ -55,15 +56,21 @@ async def get_waypoints(start_coords: tuple, end_coords: tuple, points: int) -> 
                 return points
             except Exception as err:
                 print(err)
-                return {}  # TODO: print out errors etc
+                return None # TODO: print out errors etc
 
 
 
 def dev_testing():
-    # start_coords = (57.690341, 11.974507)
-    # end_coords = (57.693616, 11.973180)
-    start_coords = (57.704373, 11.984967)
-    end_coords = (57.707228, 11.992337)
+    if __name__ != "__main__":
+        print("No. Just no. Go away.")
+        return
+
+
+    start_coords = (57.690341, 11.974507)
+    end_coords = (57.693616, 11.973180)
+
+    # start_coords = (57.704373, 11.984967)
+    # end_coords = (57.707228, 11.992337)
 
     (y, x) = start_coords
     (yh, xh) = end_coords
