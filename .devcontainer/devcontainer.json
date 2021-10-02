@@ -1,6 +1,4 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
-// https://github.com/microsoft/vscode-dev-containers/tree/v0.194.0/containers/docker-existing-docker-compose
-// If you want to run as a non-root user in the container, see .devcontainer/docker-compose.yml.
+
 {
 	"name": "Existing Docker Compose (Extend)",
 	"dockerComposeFile": [
@@ -9,9 +7,11 @@
 	],
 	"service": "core_api",
 	"workspaceFolder": "/workspace",
-
 	"settings": {},
+	"remoteEnv": {"PORT": "80"},
+	"forwardPorts": [8000],
 	"extensions": [
+		"ms-vsliveshare.vsliveshare",
 		"ms-python.python"
 	],
 }
