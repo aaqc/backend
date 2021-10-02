@@ -30,8 +30,7 @@ def get_path_distance(start_coords: tuple, end_coords: tuple) -> dict:
 
 def get_delta_angle(dy: float, dist: float) -> float:
     sin = dy / dist
-    angle_rad = math.asin(sin)
-    angle = (angle_rad/(math.pi*2))*360
+    angle = math.degrees( math.asin(sin) )
 
     if( angle > 180 ):
         angle -= 360
@@ -60,8 +59,18 @@ async def get_waypoints(start_coords: tuple, end_coords: tuple, points: int):
 if __name__ == "__main__":
     start_coords = (57.690341, 11.974507)
     end_coords = (57.693616, 11.973180)
+
+    (x, y) = start_coords
+    (xh, yh) = end_coords
+    dy = yh - y
+
+    # TODO: Convert x, y coords mapped to meters in 2D plane
+
     # print(get_path_distance(start_coords, end_coords))
-    points = get_waypoints(start_coords, end_coords, 10)
-    print(points)
+    # points = get_waypoints(start_coords, end_coords, 10)
+    # print(points)
     # print(get_elevation(57.708870,11.974560).text)
+    dist = get_path_distance(start_coords, end_coords)["m"]
+    dang = get_delta_angle(yh, dist)
+    print(dang)
     pass
