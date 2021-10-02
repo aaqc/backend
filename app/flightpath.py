@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 from token_handler import get_token
-# import requests
 import math
 
 import aiohttp
@@ -30,7 +29,7 @@ async def get_path_distance(start_coords: tuple, end_coords: tuple) -> Awaitable
 
     return {"km": earth_radius * c, "m": earth_radius * c * 1000 }
 
-async def get_delta_angle(dy: float, dist: float) -> Awaitable[float]:
+async def get_delta_angle(dx: float, dy: float) -> Awaitable[float]:
     tan = dy / dx 
     angle = math.degrees( math.atan(tan) )
 
@@ -60,7 +59,7 @@ async def get_waypoints(start_coords: tuple, end_coords: tuple, points: int) -> 
 
 
 
-def dev_testing():
+async def dev_testing():
     if __name__ != "__main__":
         print("No. Just no. Go away.")
         return
@@ -85,12 +84,15 @@ def dev_testing():
 
     loop = asyncio.get_event_loop()
 
-    dist = await get_path_distance(start_coords, end_coords)["m"]
+    dist = await get_path_distance(start_coords, end_coords)
     dang = await get_delta_angle(dx, dy)
 
     print(f"dist: {dist} m")
     print(f"d_ang: {dang} deg")
 
 if __name__ == "__main__":
-    dev_testing()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(dev_testing())
+    loop.close()
+
     pass
