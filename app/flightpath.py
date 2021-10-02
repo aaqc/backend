@@ -86,9 +86,11 @@ async def dev_testing():
 
     dist = await get_path_distance(start_coords, end_coords)
     dang = await get_delta_angle(dx, dy)
+    new_ang = await get_new_angle(dang, 90) # if drone is heading north
 
     print(f"dist: {dist} m")
     print(f"d_ang: {dang} deg")
+    print(f"new_ang: {new_ang} deg")
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
