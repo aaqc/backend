@@ -5,11 +5,12 @@ from token_handler import get_token
 import math
 
 import aiohttp
-# import asyncio
+import asyncio
+from typing import Awaitable
 
 google_maps_token = get_token("google_maps")
 
-def get_path_distance(start_coords: tuple, end_coords: tuple) -> dict:
+async def get_path_distance(start_coords: tuple, end_coords: tuple) -> Awaitable[dict]:
     lat1, lng1 = start_coords
     lat2, lng2 = end_coords
 
@@ -28,13 +29,16 @@ def get_path_distance(start_coords: tuple, end_coords: tuple) -> dict:
 
     return {"km": earth_radius * c, "m": earth_radius * c * 1000 }
 
-def get_delta_angle(dy: float, dist: float) -> float:
-    sin = dy / dist
-    angle = math.degrees( math.asin(sin) )
+async def get_delta_angle(dy: float, dist: float) -> Awaitable[float]:
+    tan = dy / dx 
+    angle = math.degrees( math.atan(tan) )
 
-    return angle if angle < 180 else angle - 360
+    return angle if angle < 180 else angle - 360 # handle periodicity
 
-async def get_waypoints(start_coords: tuple, end_coords: tuple, points: int):
+async def get_new_angle(d_angle: float, cur_angle: float) -> Awaitable[float]:
+    return d_angle - cur_angle
+
+async def get_waypoints(start_coords: tuple, end_coords: tuple, points: int) -> Awaitable[dict]:
     lat1, lng1 = start_coords
     lat2, lng2 = end_coords
 
@@ -51,15 +55,19 @@ async def get_waypoints(start_coords: tuple, end_coords: tuple, points: int):
                 return points
             except Exception as err:
                 print(err)
-                return None  # TODO: print out errors etc
+                return {}  # TODO: print out errors etc
 
-if __name__ == "__main__":
-    start_coords = (57.690341, 11.974507)
-    end_coords = (57.693616, 11.973180)
 
-    (x, y) = start_coords
-    (xh, yh) = end_coords
-    dy = yh - y
+
+def dev_testing():
+    # start_coords = (57.690341, 11.974507)
+    # end_coords = (57.693616, 11.973180)
+    start_coords = (57.704373, 11.984967)
+    end_coords = (57.707228, 11.992337)
+
+    (y, x) = start_coords
+    (yh, xh) = end_coords
+    dx, dy = xh - x, yh - y
 
     # TODO: Convert x, y coords mapped to meters in 2D plane
 
@@ -67,7 +75,15 @@ if __name__ == "__main__":
     # points = get_waypoints(start_coords, end_coords, 10)
     # print(points)
     # print(get_elevation(57.708870,11.974560).text)
-    dist = get_path_distance(start_coords, end_coords)["m"]
-    dang = get_delta_angle(yh, dist)
-    print(dang)
+
+    loop = asyncio.get_event_loop()
+
+    dist = await get_path_distance(start_coords, end_coords)["m"]
+    dang = await get_delta_angle(dx, dy)
+
+    print(f"dist: {dist} m")
+    print(f"d_ang: {dang} deg")
+
+if __name__ == "__main__":
+    dev_testing()
     pass
