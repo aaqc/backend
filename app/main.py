@@ -20,9 +20,15 @@ logger: Logger
 app = FastAPI()
 manager = ConnectionManager()
 
+# Misc
 @app.get("/")
 async def index():
     return {"hello": "there"}
+
+
+@app.get("/ping")
+async def hello():
+    return PlainTextResponse("pong")
 
 
 @app.get("/isvimbetterthanvscode")
@@ -30,6 +36,7 @@ async def isvimbetterthanvscode():
     return "Vim is lim[x->inf] x times better than everything and vscode is lim[x->inf] x worse than VIM and nano"
 
 
+# Websocket 
 @app.websocket("/gateway")
 async def connect_client_to_gateway(websocket: WebSocket):
     con_id = await manager.connect_client(websocket)
@@ -57,20 +64,13 @@ async def status_of_gateway():
     return {"online": True}
 
 
-@app.get("/ping")
-async def hello():
-    return PlainTextResponse("pong")
-
-
 @app.get("/gateway/connections")
 def active_connections():
     """Returns how many clients and providers are connected to this gateway"""
     return {"count": len(manager.connections)}
 
-if __name__ == "__main__":
-    uvicorn.run("main:app", port=8000)
 
-
+# Flightpath 
 @app.get("/flightpath")
 async def flightpath():
     return PlaintextReponse("Flight planning 101")
@@ -86,3 +86,9 @@ async def new_flightpath(start_coords: tuple, end_coords: tuple, points: int):
 def flightpath_distance(start_coords: tuple, end_coords: tuple):
     dist = flightpath.get_path_distance(start_coords, end_coords)
     return {"distance": dist}
+
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", port=8000)
+
+
