@@ -70,13 +70,13 @@ def active_connections():
 
 # Flightpath 
 @app.get("/flightpath/new")
-async def new_flightpath(start_coords: tuple, end_coords: tuple, points: int):
+async def new_flightpath(start_coords: tuple[float, float], end_coords: tuple[float, float], points: int):
     waypoints = flightpath.get_waypoints(start_coords, end_coords, points) 
     return {"waypoints": waypoints} 
 
 
 @app.get("/flightpath/distance")
-def flightpath_distance(start_coords: tuple, end_coords: tuple):
+def flightpath_distance(start_coords: tuple[float, float], end_coords: tuple[float, float]):
     dist = flightpath.get_path_distance(start_coords, end_coords)
     return {"distance": dist}
 
