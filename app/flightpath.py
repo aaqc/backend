@@ -58,7 +58,7 @@ async def get_waypoints(start_coords: tuple, end_coords: tuple, points: int) -> 
                 return points
             except Exception as err:
                 print(err)
-                return None # TODO: print out errors etc
+                return "Unable to get waypoints." 
 
 
 

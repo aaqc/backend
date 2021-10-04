@@ -4,6 +4,9 @@ from typing import Awaitable
 
 import flightpath
 
+# async 
+loop = asyncio.get_event_loop()
+
 # General API stuff
 def ping(data):
     return "pong", None
@@ -43,7 +46,7 @@ def get_waypoints(data):
     start_coords, end_coords = get_coords(data)
     points = int(data["points"])
 
-    waypoints = await get_waypoints(start_coords, end_coords, points)
+    waypoints = loop.run_until_complete( get_waypoints(start_coords, end_coords, points) )
     return "waypoints", waypoints
 
 functions = {
