@@ -41,8 +41,10 @@ def get_new_angle(data):
 
 def get_waypoints(data):
     start_coords, end_coords = get_coords(data)
-    num_points = int(data["points"])
-    pass
+    points = int(data["points"])
+
+    waypoints = await get_waypoints(start_coords, end_coords, points)
+    return "waypoints", waypoints
 
 functions = {
     "ping": ping,
@@ -50,4 +52,5 @@ functions = {
     "who": who,
     "get_distance", get_distance,
     "get_new_angle", get_new_angle,
+    "get_waypoints", get_waypoints
 }
