@@ -69,11 +69,6 @@ def active_connections():
 
 
 # Flightpath 
-@app.get("/flightpath")
-async def flightpath():
-    return PlaintextReponse("Flight planning 101")
-
-
 @app.get("/flightpath/new")
 async def new_flightpath(start_coords: tuple, end_coords: tuple, points: int):
     waypoints = flightpath.get_waypoints(start_coords, end_coords, points) 
