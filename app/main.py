@@ -70,7 +70,13 @@ def active_connections():
 
 # Flightpath 
 @app.get("/flightpath/new")
-async def new_flightpath(start_coords: tuple[float, float], end_coords: tuple[float, float], points: int):
+async def new_flightpath(start: str, end: str, points: int):
+    coords = start.split(",")
+    start_coords = (float(coords[0]), float(coords[1]))
+
+    coords = end.split(",")
+    end_coords = (float(coords[0]), float(coords[1]))
+
     waypoints = flightpath.get_waypoints(start_coords, end_coords, points) 
     return {"waypoints": waypoints} 
 
