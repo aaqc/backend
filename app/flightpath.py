@@ -52,9 +52,9 @@ async def get_waypoints(start_coords: tuple, end_coords: tuple, points: int) -> 
     )
 
     async with aiohttp.ClientSession() as session:
-        async with session.get("https://maps.googleapis.com/maps/api/elevation/json", data=params) as response:
+        async with session.get("https://maps.googleapis.com/maps/api/elevation/json", params=params) as response:
             try:
-                points = await response.json()["results"]
+                points = await response.json()
                 return points
             except Exception as err:
                 print(err)
