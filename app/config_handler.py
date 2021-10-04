@@ -16,6 +16,6 @@ with open(config_filepath, "r") as stream:
     except yaml.YAMLError as err:
         print(f"YAML Error: {err}")
 
-def get_token(api: str) -> str:
-    return CONFIG["tokens"][api] or ""
+def fetch_token(api: str) -> str:
+    return CONFIG["tokens"][api] 
 
