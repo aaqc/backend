@@ -6,6 +6,8 @@ from logging import debug
 from starlette.responses import JSONResponse
 import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from starlette.responses import RedirectResponse
+
 from fastapi.responses import HTMLResponse
 import aiohttp
 from connection_manager import ConnectionManager
@@ -23,6 +25,7 @@ manager = ConnectionManager()
 # Misc
 @app.get("/")
 async def index():
+
     return RedirectResponse(url="/docs")
 
 
