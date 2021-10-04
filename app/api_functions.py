@@ -36,14 +36,8 @@ def get_new_angle(data):
     start_coords, end_coords = get_coords(data)
     cur_angle = float(data["cur_angle"])
 
-    d_angle = flightpath.get_new_angle(start_coords, end_coords, cur_angle)
-    return "angle" 
-
-def get_delta_angle(data):
-    dx, dy = float(data["dx"]), float(data["dy"])
-
-    d_angle = flightpath.get_delta_angle(dx, dy)
-    return "d_angle", d_angle
+    d_angle, new_angle = flightpath.get_new_angle(start_coords, end_coords, cur_angle)
+    return "angle", {"d_angle": d_angle, "new_angle": new_angle}
 
 def get_waypoints(data):
     start_coords, end_coords = get_coords(data)
@@ -55,6 +49,5 @@ functions = {
     "time": time,
     "who": who,
     "get_distance", get_distance,
-    "get_delta_angle", get_delta_angle,
     "get_new_angle", get_new_angle,
 }
