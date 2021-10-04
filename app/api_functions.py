@@ -28,12 +28,14 @@ def get_coords(data):
 
     return start_coords, end_coords
 
+
 # Flightpath API wrappers
 def get_distance(data):
     start_coords, end_coords = get_coords(data)
 
     distance_dict = flightpath.get_path_distance(start_coords, end_coords)
     return "distance", distance_dict
+
 
 def get_new_angle(data):
     start_coords, end_coords = get_coords(data)
@@ -42,12 +44,14 @@ def get_new_angle(data):
     d_angle, new_angle = flightpath.get_new_angle(start_coords, end_coords, cur_angle)
     return "angle", {"d_angle": d_angle, "new_angle": new_angle}
 
+
 def get_waypoints(data):
     start_coords, end_coords = get_coords(data)
     points = int(data["points"])
 
-    waypoints = loop.run_until_complete( get_waypoints(start_coords, end_coords, points) )
+    waypoints = loop.run_until_complete( flightpath.get_waypoints(start_coords, end_coords, points) )
     return "waypoints", waypoints
+
 
 functions = {
     "ping": ping,

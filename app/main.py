@@ -13,14 +13,12 @@ from json.decoder import JSONDecodeError
 from time import time_ns
 from fastapi.logger import logger
 from traceback import format_exc
+import flightpath
 
 logger: Logger
 
-
 app = FastAPI()
-
 manager = ConnectionManager()
-
 
 @app.get("/")
 async def index():
@@ -71,3 +69,20 @@ def active_connections():
 
 if __name__ == "__main__":
     uvicorn.run("main:app", port=8000)
+
+
+@app.get("/flightpath")
+async def flightpath():
+    return PlaintextReponse("Flight planning 101")
+
+
+@app.get("/flightpath/new")
+async def new_flightpath(start_coords: tuple, end_coords: tuple, points: int):
+    waypoints = flightpath.get_waypoints(start_coords, end_coords, points) 
+    return {"waypoints": waypoints} 
+
+
+@app.get("/flightpath/distance")
+def flightpath_distance(start_coords: tuple, end_coords: tuple):
+    dist = flightpath.get_path_distance(start_coords, end_coords)
+    return {"distance": dist}
