@@ -23,17 +23,12 @@ manager = ConnectionManager()
 # Misc
 @app.get("/")
 async def index():
-    return {"hello": "there"}
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/ping")
 async def hello():
     return PlainTextResponse("pong")
-
-
-@app.get("/isvimbetterthanvscode")
-async def isvimbetterthanvscode():
-    return "Vim is lim[x->inf] x times better than everything and vscode is lim[x->inf] x worse than VIM and nano"
 
 
 # Websocket 
