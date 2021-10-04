@@ -1,23 +1,32 @@
 #!/usr/bin/python
 
-# TODO: do better handling
+import yaml
 
-import os
-user_home = os.path.expanduser('~')
+CONFIG = {} # config for everything
+config_filepath = "./config.yml"
 
-api_filepath = f"{user_home}/.config/tokens/"
-
-def read_token_file(filepath: str) -> str:
+with open(config_filepath, "r") as stream:
     try:
-        fh = open(filepath, "r")
-        token = fh.readlines()[0]
-        fh.close()
+        CONFIG = yaml.safe_load(stream)
 
-        return token
-    except FileNotFoundError:
-        print(f"Token not found. {filepath} no such file or directory.")
-        return ""
+    except FileNotFoundError as err:
+        print("Unable to load config.yml. No such file or directory.")
+        raise err
 
-def get_token(api: str) -> str:
-    return read_token_file(f"{api_filepath}{api}.token")
+    except yaml.YAMLError as err:
+        print(f"YAML Error: {err}")
+
+# def read_token_file(filepath: str) -> str:
+#     try:
+#         fh = open(filepath, "r")
+#         token = fh.readlines()[0]
+#         fh.close()
+# 
+#         return token
+#     except FileNotFoundError:
+#         print(f"Token not found. {filepath} no such file or directory.")
+#         return ""
+# 
+# def get_token(api: str) -> str:
+#     return read_token_file(f"{api_filepath}{api}.token")
 
