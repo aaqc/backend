@@ -6,6 +6,8 @@ from logging import debug
 from starlette.responses import JSONResponse
 import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from starlette.responses import RedirectResponse
+
 from fastapi.responses import HTMLResponse
 import aiohttp
 from connection_manager import ConnectionManager
@@ -13,25 +15,25 @@ from json.decoder import JSONDecodeError
 from time import time_ns
 from fastapi.logger import logger
 from traceback import format_exc
+import flightpath
 
 logger: Logger
 
-
 app = FastAPI()
-
 manager = ConnectionManager()
 
-
+# Misc
 @app.get("/")
 async def index():
-    return {"isvimbetterthanvscode": "no, but nano is also worse"}
+    return RedirectResponse(url="/docs")
 
 
-@app.get("/isvimbetterthanvscode")
-async def isvimbetterthanvscode():
-    return "Vim is lim[x->inf] x times worse., but nano is lim[x->inf] x worse than VIM and vscode"
+@app.get("/ping")
+async def hello():
+    return PlainTextResponse("pong")
 
 
+# Websocket 
 @app.websocket("/gateway")
 async def connect_client_to_gateway(websocket: WebSocket):
     con_id = await manager.connect_client(websocket)
@@ -59,35 +61,38 @@ async def status_of_gateway():
     return {"online": True}
 
 
-@app.get("/ping")
-async def hello():
-    return PlainTextResponse("pong")
-
-
 @app.get("/gateway/connections")
 def active_connections():
     """Returns how many clients and providers are connected to this gateway"""
     return {"count": len(manager.connections)}
 
 
-# @app.get("/websocket")
-# async def get():
-#     html = open("./websocket-example.html", "r").read()
-#     return HTMLResponse(html)
+# Flightpath 
+def get_coords(start: str, end: str):
+    coords = start.split(",")
+    start_coords = (float(coords[0]), float(coords[1]))
+
+    coords = end.split(",")
+    end_coords = (float(coords[0]), float(coords[1]))
+
+    return start_coords, end_coords
+
+@app.get("/flightpath/new")
+async def new_flightpath(start: str, end: str, points: int):
+    start_coords, end_coords = get_coords(start, end)
+
+    waypoints = await flightpath.get_waypoints(start_coords, end_coords, points) 
+    return {"waypoints": waypoints} 
 
 
-# @app.websocket("/ws/{client_id}")
-# async def websocket_endpoint(websocket: WebSocket, client_id: int):
-#     await manager.connect(websocket)
-#     try:
-#         while True:
-#             data = await websocket.receive_text()
-#             await manager.send_personal_message(f"You wrote: {data}", websocket)
-#             await manager.broadcast(f"Client #{client_id} says: {data}")
-#     except WebSocketDisconnect:
-#         manager.disconnect(websocket)
-#         await manager.broadcast(f"Client #{client_id} left the chat")
+@app.get("/flightpath/distance")
+def flightpath_distance(start: str, end: str):
+    start_coords, end_coords = get_coords(start, end)
+    dist = flightpath.get_path_distance(start_coords, end_coords)
+    return {"distance": dist}
 
 
 if __name__ == "__main__":
     uvicorn.run("main:app", port=8000)
+
+

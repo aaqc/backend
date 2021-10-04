@@ -10,7 +10,7 @@ from typing import Any
 
 google_maps_token = get_token("google_maps")
 
-async def get_path_distance(start_coords: tuple, end_coords: tuple) -> Awaitable[dict]:
+def get_path_distance(start_coords: tuple, end_coords: tuple) -> dict:
     lat1, lng1 = start_coords
     lat2, lng2 = end_coords
 
@@ -29,14 +29,17 @@ async def get_path_distance(start_coords: tuple, end_coords: tuple) -> Awaitable
 
     return {"km": earth_radius * c, "m": earth_radius * c * 1000 }
 
-async def get_delta_angle(dx: float, dy: float) -> Awaitable[float]:
+def get_delta_angle(dx: float, dy: float) -> float:
     tan = dy / dx 
     angle = math.degrees( math.atan(tan) )
 
     return angle if angle < 180 else angle - 360 # handle periodicity
 
-async def get_new_angle(d_angle: float, cur_angle: float) -> Awaitable[float]:
-    return d_angle - cur_angle
+def get_new_angle(start_point: tuple, end_point: tuple, cur_angle: float) -> float:
+    dx, dy = end_point[0] - start_point[0], end_point[1] - start_point[1]
+    d_angle = get_delta_angle(dx, dy)
+
+    return d_angle, d_angle + cur_angle # TODO: do stuff
 
 async def get_waypoints(start_coords: tuple, end_coords: tuple, points: int) -> Awaitable[Any]:
     lat1, lng1 = start_coords
@@ -49,17 +52,17 @@ async def get_waypoints(start_coords: tuple, end_coords: tuple, points: int) -> 
     )
 
     async with aiohttp.ClientSession() as session:
-        async with session.get("https://maps.googleapis.com/maps/api/elevation/json", data=params) as response:
+        async with session.get("https://maps.googleapis.com/maps/api/elevation/json", params=params) as response:
             try:
-                points = await response.json()["results"]
+                points = await response.json()
                 return points
             except Exception as err:
                 print(err)
-                return None # TODO: print out errors etc
+                return "Unable to get waypoints." 
 
 
 
-async def dev_testing():
+def dev_testing():
     if __name__ != "__main__":
         print("No. Just no. Go away.")
         return
@@ -84,16 +87,14 @@ async def dev_testing():
 
     loop = asyncio.get_event_loop()
 
-    dist = await get_path_distance(start_coords, end_coords)
-    dang = await get_delta_angle(dx, dy)
-    new_ang = await get_new_angle(dang, 90) # if drone is heading north
+    dist = get_path_distance(start_coords, end_coords)
+    dang = get_delta_angle(dx, dy)
+    new_ang = get_new_angle(dang, 90) # if drone is heading north
 
-    print(f"dist: {dist} m")
+    print(f"dist: {dist}")
     print(f"d_ang: {dang} deg")
     print(f"new_ang: {new_ang} deg")
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(dev_testing())
-    loop.close()
+    dev_testing()
     pass
