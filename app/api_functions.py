@@ -49,6 +49,6 @@ functions = {
     "ping": ping,
     "time": time,
     "who": who,
-    "get_distance", get_distance,
-    "get_waypoints", get_waypoints
+    "get_distance": get_distance,
+    "get_waypoints": get_waypoints
 }
