@@ -25,7 +25,6 @@ manager = ConnectionManager()
 # Misc
 @app.get("/")
 async def index():
-
     return RedirectResponse(url="/docs")
 
 
@@ -69,20 +68,26 @@ def active_connections():
 
 
 # Flightpath 
-@app.get("/flightpath/new")
-async def new_flightpath(start: str, end: str, points: int):
+def get_coords(start: str, end: str):
     coords = start.split(",")
     start_coords = (float(coords[0]), float(coords[1]))
 
     coords = end.split(",")
     end_coords = (float(coords[0]), float(coords[1]))
 
+    return start_coords, end_coords
+
+@app.get("/flightpath/new")
+async def new_flightpath(start: str, end: str, points: int):
+    start_coords, end_coords = get_coords(start, end)
+
     waypoints = await flightpath.get_waypoints(start_coords, end_coords, points) 
     return {"waypoints": waypoints} 
 
 
 @app.get("/flightpath/distance")
-def flightpath_distance(start_coords: tuple[float, float], end_coords: tuple[float, float]):
+def flightpath_distance(start: str, end: str):
+    start_coords, end_coords = get_coords(start, end)
     dist = flightpath.get_path_distance(start_coords, end_coords)
     return {"distance": dist}
 
