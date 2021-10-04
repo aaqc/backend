@@ -1,9 +1,8 @@
-# Backend
+# AAQC Backend
+Server backend for the drones.
 
-## How to install and use with VSCode
+## Building & Running
+Build the container with: `$ docker-compose build`<br>
+Start the container with: `$ docker-compose up`<br>
 
-![Gif showing how to use](how-to-use.gif)
-
-## Start devserver in container in debug mode:
-
-`/start-reload.sh`
+For development stuff, see [USAGE.md](USAGE.md).
