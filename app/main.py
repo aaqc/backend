@@ -77,7 +77,7 @@ async def new_flightpath(start: str, end: str, points: int):
     coords = end.split(",")
     end_coords = (float(coords[0]), float(coords[1]))
 
-    waypoints = flightpath.get_waypoints(start_coords, end_coords, points) 
+    waypoints = await flightpath.get_waypoints(start_coords, end_coords, points) 
     return {"waypoints": waypoints} 
 
 
