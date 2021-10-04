@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from token_handler import get_token
+from config_handler import get_token
 import math
 
 import aiohttp
