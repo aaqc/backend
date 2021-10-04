@@ -10,7 +10,7 @@ from typing import Any
 
 google_maps_token = get_token("google_maps")
 
-def get_path_distance(start_coords: tuple, end_coords: tuple) -> Awaitable[dict]:
+def get_path_distance(start_coords: tuple, end_coords: tuple) -> dict:
     lat1, lng1 = start_coords
     lat2, lng2 = end_coords
 
@@ -29,13 +29,13 @@ def get_path_distance(start_coords: tuple, end_coords: tuple) -> Awaitable[dict]
 
     return {"km": earth_radius * c, "m": earth_radius * c * 1000 }
 
-def get_delta_angle(dx: float, dy: float) -> Awaitable[float]:
+def get_delta_angle(dx: float, dy: float) -> float:
     tan = dy / dx 
     angle = math.degrees( math.atan(tan) )
 
     return angle if angle < 180 else angle - 360 # handle periodicity
 
-def get_new_angle(d_angle: float, cur_angle: float) -> Awaitable[float]:
+def get_new_angle(d_angle: float, cur_angle: float) -> float:
     return d_angle - cur_angle
 
 async def get_waypoints(start_coords: tuple, end_coords: tuple, points: int) -> Awaitable[Any]:
