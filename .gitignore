@@ -1,4 +1,4 @@
-config.yml
+app/config.yml
 virtualenv/
 __pycache__/
 .env
