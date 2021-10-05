@@ -33,7 +33,7 @@ async def hello():
     return PlainTextResponse("pong")
 
 
-# Websocket 
+# Websocket
 @app.websocket("/gateway")
 async def connect_client_to_gateway(websocket: WebSocket):
     con_id = await manager.connect_client(websocket)
@@ -67,7 +67,7 @@ def active_connections():
     return {"count": len(manager.connections)}
 
 
-# Flightpath 
+# Flightpath
 def get_coords(start: str, end: str):
     coords = start.split(",")
     start_coords = (float(coords[0]), float(coords[1]))
@@ -77,12 +77,13 @@ def get_coords(start: str, end: str):
 
     return start_coords, end_coords
 
+
 @app.get("/flightpath/new")
 async def new_flightpath(start: str, end: str, points: int):
     start_coords, end_coords = get_coords(start, end)
 
-    waypoints = await flightpath.get_waypoints(start_coords, end_coords, points) 
-    return {"waypoints": waypoints} 
+    waypoints = await flightpath.get_waypoints(start_coords, end_coords, points)
+    return {"waypoints": waypoints}
 
 
 @app.get("/flightpath/distance")
@@ -94,5 +95,3 @@ def flightpath_distance(start: str, end: str):
 
 if __name__ == "__main__":
     uvicorn.run("main:app", port=8000)
-
-

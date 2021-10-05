@@ -5,15 +5,17 @@ import asyncio
 
 import flightpath
 
-# async 
+# async
 loop = asyncio.get_event_loop()
 
 # General API stuff
 def ping(data):
     return "pong", None
 
+
 def time(data):
     return "time", {"utc_ns": time_ns()}
+
 
 def who(data):
     return "who", {
@@ -22,10 +24,11 @@ def who(data):
         "count": len(data["manager"].connections),
     }
 
+
 # Flightpath data functions
 def get_coords(data):
-    start_coords = ( float(data["start"]["lat"]), float(data["start"]["lng"]) )
-    end_coords = ( float(data["end"]["lat"]), float(data["end"]["lng"]) )
+    start_coords = (float(data["start"]["lat"]), float(data["start"]["lng"]))
+    end_coords = (float(data["end"]["lat"]), float(data["end"]["lng"]))
 
     return start_coords, end_coords
 
@@ -42,7 +45,9 @@ def get_waypoints(data):
     start_coords, end_coords = get_coords(data)
     points = int(data["points"])
 
-    waypoints = loop.run_until_complete( flightpath.get_waypoints(start_coords, end_coords, points) )
+    waypoints = loop.run_until_complete(
+        flightpath.get_waypoints(start_coords, end_coords, points)
+    )
     return "waypoints", waypoints
 
 
@@ -51,5 +56,5 @@ functions = {
     "time": time,
     "who": who,
     "get_distance": get_distance,
-    "get_waypoints": get_waypoints
+    "get_waypoints": get_waypoints,
 }
