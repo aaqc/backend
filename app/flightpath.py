@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from starlette.routing import request_response
 from config_handler import get_token
 import math
 
@@ -8,6 +9,8 @@ from typing import Awaitable
 from typing import Any
 
 google_maps_token = get_token("google_maps")
+weather_api_token = get_token("weather_api")
+
 
 
 def get_path_distance(start_coords: tuple, end_coords: tuple) -> dict:
@@ -57,7 +60,7 @@ async def get_waypoints(
     params = (
         ("path", f"{lat1},{lng1}|{lat2},{lng2}"),
         ("samples", f"{points}"),
-        ("key", f"{google_maps_token}"),
+        ("key", google_maps_token),
     )
 
     async with aiohttp.ClientSession() as session:
