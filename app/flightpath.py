@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-from starlette.routing import request_response
 from config_handler import get_token
 import math
 
