@@ -37,14 +37,12 @@ def construct(
 
 
 def handle_message(message: Any, manager: ConnectionManager):
-    t: str = ""
-    if "type" in message:
-        t = message["type"]
-        if type(t) != str:
-            raise TypeError("Message type was off incorrect type")
-    else:
+    if "type" not in message:
         raise KeyError("Message type missing")
 
+    t: str = message["type"]
+    if type(t) != str:
+        raise TypeError("Message type was off incorrect type")
     nonce: Optional[Any] = None
     if "nonce" in message:
         nonce = message["nonce"]
