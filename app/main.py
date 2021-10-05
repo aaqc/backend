@@ -34,7 +34,7 @@ async def ping():
     return PlainTextResponse("pong")
 
 
-# Websocket 
+# Websocket
 @app.websocket("/gateway")
 async def connect_client_to_gateway(websocket: WebSocket):
     con_id = await manager.connect_client(websocket)
@@ -77,6 +77,8 @@ def get_coords(start: str, end: str):
     Returns:
         [TUPLE]: [Returns the converted tuple]
     """    
+# Flightpath
+def get_coords(start: str, end: str):
     coords = start.split(",")
     start_coords = (float(coords[0]), float(coords[1]))
 
@@ -91,6 +93,11 @@ async def new_flightpath(start: str, end: str, points: int):
     start_coords, end_coords = flightpath.get_coords(start, end)
     waypoints = await flightpath.get_waypoints(start_coords, end_coords, points) 
     return {"waypoints": waypoints} 
+    start_coords, end_coords = get_coords(start, end)
+
+    waypoints = await flightpath.get_waypoints(start_coords, end_coords, points)
+    return {"waypoints": waypoints}
+
 
 
 @app.get("/flightpath/distance")
@@ -111,5 +118,3 @@ async def get_weather(lat: float, lng: float):
 
 if __name__ == "__main__":
     uvicorn.run("main:app", port=8000)
-
-
