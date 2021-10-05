@@ -116,14 +116,6 @@ async def get_weather(coords: tuple) -> Awaitable[Any]:
     except:
         return {"status":"error"}
 
-def get_coords(start: str, end: str):
-    coords = start.split(",")
-    start_coords = (float(coords[0]), float(coords[1]))
-
-    coords = end.split(",")
-    end_coords = (float(coords[0]), float(coords[1]))
-
-    return start_coords, end_coords
 
 
 
