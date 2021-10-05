@@ -13,7 +13,6 @@ google_maps_token = get_token("google_maps")
 weather_api_token = get_token("weather_api")
 
 
-
 def get_path_distance(start_coords: tuple, end_coords: tuple) -> dict:
     lat1, lng1 = start_coords
     lat2, lng2 = end_coords
@@ -106,6 +105,7 @@ def dev_testing():
     print(f"d_ang: {dang} deg")
     print(f"new_ang: {new_ang} deg")
 
+
 async def get_weather(coords: tuple) -> Awaitable[Any]:
     lat, lng = coords
     try:
@@ -114,7 +114,8 @@ async def get_weather(coords: tuple) -> Awaitable[Any]:
             r = await client.get(url)
             return await r.json()
     except:
-        return {"status":"error"}
+        return {"status": "error"}
+
 
 if __name__ == "__main__":
     asyncio.run(get_weather())
