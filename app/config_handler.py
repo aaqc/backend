@@ -2,7 +2,7 @@
 
 import yaml
 
-CONFIG = {} # config for everything
+CONFIG = {}  # config for everything
 config_filepath = "/app/config.yml"
 
 with open(config_filepath, "r") as stream:
@@ -17,6 +17,6 @@ with open(config_filepath, "r") as stream:
         print(f"YAML Error: {err}")
         raise err
 
-def get_token(api: str) -> str:
-    return CONFIG["tokens"][api] 
 
+def get_token(api: str) -> str:
+    return CONFIG["tokens"][api]
