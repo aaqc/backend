@@ -39,7 +39,9 @@ def get_delta_angle(dx: float, dy: float) -> float:
     return angle if angle < 180 else angle - 360  # handle periodicity
 
 
-def get_new_angle(start_point: tuple, end_point: tuple, cur_angle: float) -> tuple[float, float]:
+def get_new_angle(
+    start_point: tuple, end_point: tuple, cur_angle: float
+) -> tuple[float, float]:
     dx, dy = end_point[0] - start_point[0], end_point[1] - start_point[1]
     d_angle = get_delta_angle(dx, dy)
 
