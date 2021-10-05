@@ -16,6 +16,7 @@ from time import time_ns
 from fastapi.logger import logger
 from traceback import format_exc
 import flightpath
+import weather as weather_api
 
 logger: Logger
 
@@ -29,7 +30,7 @@ async def index():
 
 
 @app.get("/ping")
-async def hello():
+async def ping():
     return PlainTextResponse("pong")
 
 
@@ -66,9 +67,16 @@ def active_connections():
     """Returns how many clients and providers are connected to this gateway"""
     return {"count": len(manager.connections)}
 
+def get_coords(start: str, end: str): 
+    """Parse string tuple to normal tuple
 
-# Flightpath 
-def get_coords(start: str, end: str):
+    Args:
+        start (str): [Start coords TUPLE format but inside string]
+        end (str): [End coords TUPLE format but inside string 
+
+    Returns:
+        [TUPLE]: [Returns the converted tuple]
+    """    
     coords = start.split(",")
     start_coords = (float(coords[0]), float(coords[1]))
 
@@ -77,19 +85,28 @@ def get_coords(start: str, end: str):
 
     return start_coords, end_coords
 
+
 @app.get("/flightpath/new")
 async def new_flightpath(start: str, end: str, points: int):
-    start_coords, end_coords = get_coords(start, end)
-
+    start_coords, end_coords = flightpath.get_coords(start, end)
     waypoints = await flightpath.get_waypoints(start_coords, end_coords, points) 
     return {"waypoints": waypoints} 
 
 
 @app.get("/flightpath/distance")
 def flightpath_distance(start: str, end: str):
-    start_coords, end_coords = get_coords(start, end)
+    start_coords, end_coords = flightpath.get_coords(start, end)
     dist = flightpath.get_path_distance(start_coords, end_coords)
     return {"distance": dist}
+
+
+@app.get("/get_weather_at_coords")
+async def get_weather(lat: float, lng: float):
+    weather = await weather_api.get_weather_at_coords(lat, lng)
+    return weather
+
+
+
 
 
 if __name__ == "__main__":

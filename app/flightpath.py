@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from starlette.routing import request_response
 from config_handler import get_token
 import math
 
@@ -9,6 +10,8 @@ from typing import Awaitable
 from typing import Any
 
 google_maps_token = get_token("google_maps")
+weather_api_token = get_token("weather_api")
+
 
 def get_path_distance(start_coords: tuple, end_coords: tuple) -> dict:
     lat1, lng1 = start_coords
@@ -48,7 +51,7 @@ async def get_waypoints(start_coords: tuple, end_coords: tuple, points: int) -> 
     params = (
         ("path", f"{lat1},{lng1}|{lat2},{lng2}"),
         ("samples", f"{points}"),
-        ("key", f"{google_maps_token}"),
+        ("key", google_maps_token),
     )
 
     async with aiohttp.ClientSession() as session:
@@ -95,6 +98,26 @@ def dev_testing():
     print(f"d_ang: {dang} deg")
     print(f"new_ang: {new_ang} deg")
 
+async def get_weather(coords: tuple) -> Awaitable[Any]:
+    lat, lng = coords
+    try:
+        url = f"https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lng}&appid={weather_api_token}"
+        async with aiohttp.ClientSession() as client:
+            r = await client.get(url)
+            return await r.json()
+    except:
+        return {"status":"error"}
+
+def get_coords(start: str, end: str):
+    coords = start.split(",")
+    start_coords = (float(coords[0]), float(coords[1]))
+
+    coords = end.split(",")
+    end_coords = (float(coords[0]), float(coords[1]))
+
+    return start_coords, end_coords
+
+
 if __name__ == "__main__":
-    dev_testing()
+    asyncio.run(get_weather())
     pass

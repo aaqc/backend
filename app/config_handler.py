@@ -3,7 +3,7 @@
 import yaml
 
 CONFIG = {} # config for everything
-config_filepath = "./config.yml"
+config_filepath = "/app/config.yml"
 
 with open(config_filepath, "r") as stream:
     try:
