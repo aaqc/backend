@@ -116,9 +116,6 @@ async def get_weather(coords: tuple) -> Awaitable[Any]:
     except:
         return {"status":"error"}
 
-
-
-
 if __name__ == "__main__":
     asyncio.run(get_weather())
     pass
