@@ -14,7 +14,7 @@ with open(config_filepath, "r") as stream:
 
     except FileNotFoundError as err:
         print("Unable to load config.yml. No such file or directory.")
-        
+
         raise err
 
     except yaml.YAMLError as err:
