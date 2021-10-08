@@ -1,5 +1,4 @@
 from time import time_ns
-from connection_manager import ConnectionManager
 from typing import Awaitable
 import asyncio
 

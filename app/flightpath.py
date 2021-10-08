@@ -1,17 +1,14 @@
 #!/usr/bin/python
 
-from starlette.routing import request_response
-from config_handler import get_token
+from config_handler import TOKENS
 import math
 
 import aiohttp
-import asyncio
 from typing import Awaitable
 from typing import Any
 
-google_maps_token = get_token("google_maps")
-weather_api_token = get_token("weather_api")
-
+google_maps_token = TOKENS["google_maps"]
+weather_api_token = TOKENS["weather_api"]
 
 
 def get_path_distance(start_coords: tuple, end_coords: tuple) -> dict:
@@ -43,7 +40,9 @@ def get_delta_angle(dx: float, dy: float) -> float:
     return angle if angle < 180 else angle - 360  # handle periodicity
 
 
-def get_new_angle(start_point: tuple, end_point: tuple, cur_angle: float) -> float:
+def get_new_angle(
+    start_point: tuple, end_point: tuple, cur_angle: float
+) -> tuple[float, float]:
     dx, dy = end_point[0] - start_point[0], end_point[1] - start_point[1]
     d_angle = get_delta_angle(dx, dy)
 
@@ -52,7 +51,7 @@ def get_new_angle(start_point: tuple, end_point: tuple, cur_angle: float) -> flo
 
 async def get_waypoints(
     start_coords: tuple, end_coords: tuple, points: int
-) -> Awaitable[Any]:
+) -> Awaitable[dict[str, Any]]:
     lat1, lng1 = start_coords
     lat2, lng2 = end_coords
 
@@ -67,55 +66,8 @@ async def get_waypoints(
             "https://maps.googleapis.com/maps/api/elevation/json", params=params
         ) as response:
             try:
-                points = await response.json()
-                return points
+                waypoints = await response.json()
+                return waypoints
             except Exception as err:
                 print(err)
-                return "Unable to get waypoints."
-
-
-def dev_testing():
-    if __name__ != "__main__":
-        print("No. Just no. Go away.")
-        return
-
-    start_coords = (57.690341, 11.974507)
-    end_coords = (57.693616, 11.973180)
-
-    # start_coords = (57.704373, 11.984967)
-    # end_coords = (57.707228, 11.992337)
-
-    (y, x) = start_coords
-    (yh, xh) = end_coords
-    dx, dy = xh - x, yh - y
-
-    # TODO: Convert x, y coords mapped to meters in 2D plane
-
-    # print(get_path_distance(start_coords, end_coords))
-    # points = get_waypoints(start_coords, end_coords, 10)
-    # print(points)
-    # print(get_elevation(57.708870,11.974560).text)
-
-    loop = asyncio.get_event_loop()
-
-    dist = get_path_distance(start_coords, end_coords)
-    dang = get_delta_angle(dx, dy)
-    new_ang = get_new_angle(dang, 90)  # if drone is heading north
-
-    print(f"dist: {dist}")
-    print(f"d_ang: {dang} deg")
-    print(f"new_ang: {new_ang} deg")
-
-async def get_weather(coords: tuple) -> Awaitable[Any]:
-    lat, lng = coords
-    try:
-        url = f"https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lng}&appid={weather_api_token}"
-        async with aiohttp.ClientSession() as client:
-            r = await client.get(url)
-            return await r.json()
-    except:
-        return {"status":"error"}
-
-if __name__ == "__main__":
-    asyncio.run(get_weather())
-    pass
+                return {"error": "Unable to get waypoints."}

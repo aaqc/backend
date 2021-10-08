@@ -1,0 +1,4 @@
+# Default template, copy to "config.yml" and update relevant values 
+tokens:
+  google_maps: ""
+  weather_api: ""

@@ -67,16 +67,19 @@ def active_connections():
     """Returns how many clients and providers are connected to this gateway"""
     return {"count": len(manager.connections)}
 
-def get_coords(start: str, end: str): 
+
+def get_coords(start: str, end: str):
     """Parse string tuple to normal tuple
 
     Args:
         start (str): [Start coords TUPLE format but inside string]
-        end (str): [End coords TUPLE format but inside string 
+        end (str): [End coords TUPLE format but inside string
 
     Returns:
         [TUPLE]: [Returns the converted tuple]
-    """    
+    """
+
+
 # Flightpath
 def get_coords(start: str, end: str):
     coords = start.split(",")
@@ -91,13 +94,12 @@ def get_coords(start: str, end: str):
 @app.get("/flightpath/new")
 async def new_flightpath(start: str, end: str, points: int):
     start_coords, end_coords = flightpath.get_coords(start, end)
-    waypoints = await flightpath.get_waypoints(start_coords, end_coords, points) 
-    return {"waypoints": waypoints} 
+    waypoints = await flightpath.get_waypoints(start_coords, end_coords, points)
+    return {"waypoints": waypoints}
     start_coords, end_coords = get_coords(start, end)
 
     waypoints = await flightpath.get_waypoints(start_coords, end_coords, points)
     return {"waypoints": waypoints}
-
 
 
 @app.get("/flightpath/distance")
@@ -111,9 +113,6 @@ def flightpath_distance(start: str, end: str):
 async def get_weather(lat: float, lng: float):
     weather = await weather_api.get_weather_at_coords(lat, lng)
     return weather
-
-
-
 
 
 if __name__ == "__main__":
