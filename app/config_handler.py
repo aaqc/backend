@@ -2,11 +2,10 @@
 
 import yaml
 
-
 CONFIG = {}  # config for everything
 
 config_filepath = "/app/config.yml"
-config_template_filepath = "config_template.yml"
+default_config = "default_config.yml"
 
 with open(config_filepath, "r") as stream:
     try:
