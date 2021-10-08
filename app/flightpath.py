@@ -1,14 +1,14 @@
 #!/usr/bin/python
 
-from config_handler import get_token
+from config_handler import TOKENS 
 import math
 
 import aiohttp
 from typing import Awaitable
 from typing import Any
 
-google_maps_token = get_token("google_maps")
-weather_api_token = get_token("weather_api")
+google_maps_token = TOKENS["google_maps"]
+weather_api_token = TOKENS["weather_api"]
 
 
 def get_path_distance(start_coords: tuple, end_coords: tuple) -> dict:

@@ -2,9 +2,9 @@ import aiohttp
 import asyncio
 from typing import Awaitable
 from typing import Any
-from config_handler import get_token
+from config_handler import TOKENS 
 
-weather_api_token = get_token("weather_api")
+weather_api_token = TOKENS["weather_api"]
 
 
 async def get_weather_at_coords(lat: float, lng: float) -> Awaitable[dict[str, Any]]:
