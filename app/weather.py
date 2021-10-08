@@ -2,7 +2,7 @@ import aiohttp
 import asyncio
 from typing import Awaitable
 from typing import Any
-from config_handler import TOKENS 
+from config_handler import TOKENS
 
 weather_api_token = TOKENS["weather_api"]
 

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from config_handler import TOKENS 
+from config_handler import TOKENS
 import math
 
 import aiohttp
