@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import yaml
+from shutil import copyfile
 
 CONFIG = {}  # config for everything
 
@@ -13,8 +14,10 @@ with open(config_filepath, "r") as stream:
 
     except FileNotFoundError as err:
         print("Unable to load config.yml. No such file or directory.")
+        print(f"Creating config at \"{config_filepath}\"...")
+        copyfile(default_config, config_filepath)
+        exit(1)
 
-        raise err
 
     except yaml.YAMLError as err:
         print(f"YAML Error: {err}")
