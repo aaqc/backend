@@ -1,12 +1,13 @@
 #!/usr/bin/python
 
-from config_handler import SECRETS
 import math
 
 import aiohttp
 
-google_maps_token = SECRETS["google_maps"]
-weather_api_token = SECRETS["weather_api"]
+from config_handler import CONFIG
+
+google_maps_token = CONFIG["api_keys"]["google"]
+weather_api_token = CONFIG["api_keys"]["openweathermap"]
 
 # Flightpath
 def get_coords(start: str, end: str):

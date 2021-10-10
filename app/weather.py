@@ -2,9 +2,10 @@ import aiohttp
 import asyncio
 from typing import Awaitable
 from typing import Any
-from config_handler import SECRETS
 
-weather_api_token = SECRETS["weather_api"]
+from config_handler import CONFIG
+
+weather_api_token = CONFIG["api_keys"]["openweathermap"]
 
 
 async def get_weather_at_coords(lat: float, lng: float):

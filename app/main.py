@@ -1,4 +1,3 @@
-from config_handler import SECRETS
 from config_handler import CONFIG
 import weather as weather_api
 import uvicorn
@@ -16,16 +15,10 @@ from connection_manager import ConnectionManager
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 
-SECRET_KEY = "5e281a5991bb3030a979cb5009b61690057ae6e54eaa51e70cb7bc0446459d36"
+SECRET_KEY = CONFIG["jwt_secret"]
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
-engine = create_engine(
-    f"mysql+pymysql://aaqc:{SECRETS['db_password']}@{SECRETS['db_host']}/dbname?charset=utf8mb4"
-)
 
 logger: Logger
 
