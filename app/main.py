@@ -1,27 +1,47 @@
-from gateway import construct, construct_error, handle_message
-from logging import Logger, debug
-from typing import Optional
-from starlette.responses import PlainTextResponse
-from logging import debug
-from starlette.responses import JSONResponse
-import uvicorn
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from starlette.responses import RedirectResponse
-
-from fastapi.responses import HTMLResponse
-import aiohttp
-from connection_manager import ConnectionManager
-from json.decoder import JSONDecodeError
-from time import time_ns
-from fastapi.logger import logger
-from traceback import format_exc
-import flightpath
+from config_handler import SECRETS
+from config_handler import CONFIG
 import weather as weather_api
+import uvicorn
+import flightpath
+from traceback import format_exc
+from starlette.responses import RedirectResponse
+from starlette.responses import PlainTextResponse
+from logging import Logger
+from json.decoder import JSONDecodeError
+from gateway import construct, construct_error, handle_message
+from fastapi.logger import logger
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.security import OAuth2PasswordBearer
+from connection_manager import ConnectionManager
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+SECRET_KEY = "5e281a5991bb3030a979cb5009b61690057ae6e54eaa51e70cb7bc0446459d36"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+engine = create_engine(
+    f"mysql+pymysql://aaqc:{SECRETS['db_password']}@{SECRETS['db_host']}/dbname?charset=utf8mb4"
+)
 
 logger: Logger
 
 app = FastAPI()
 manager = ConnectionManager()
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
 
 # Misc
 @app.get("/")
@@ -68,36 +88,9 @@ def active_connections():
     return {"count": len(manager.connections)}
 
 
-def get_coords(start: str, end: str):
-    """Parse string tuple to normal tuple
-
-    Args:
-        start (str): [Start coords TUPLE format but inside string]
-        end (str): [End coords TUPLE format but inside string
-
-    Returns:
-        [TUPLE]: [Returns the converted tuple]
-    """
-
-
-# Flightpath
-def get_coords(start: str, end: str):
-    coords = start.split(",")
-    start_coords = (float(coords[0]), float(coords[1]))
-
-    coords = end.split(",")
-    end_coords = (float(coords[0]), float(coords[1]))
-
-    return start_coords, end_coords
-
-
 @app.get("/flightpath/new")
 async def new_flightpath(start: str, end: str, points: int):
     start_coords, end_coords = flightpath.get_coords(start, end)
-    waypoints = await flightpath.get_waypoints(start_coords, end_coords, points)
-    return {"waypoints": waypoints}
-    start_coords, end_coords = get_coords(start, end)
-
     waypoints = await flightpath.get_waypoints(start_coords, end_coords, points)
     return {"waypoints": waypoints}
 

@@ -1,4 +1,6 @@
-# Default template, copy to "config.yml" and update relevant values 
-tokens:
-  google_maps: ""
-  weather_api: ""
+# Default template, copy to "config.yml" and update relevant values
+secrets:
+    google_maps: ""
+    weather_api: ""
+    db_password: ""
+    db_host: "172.18.0.1"

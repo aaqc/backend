@@ -4,7 +4,7 @@ import yaml
 from shutil import copyfile
 
 CONFIG = {}  # config for everything
-TOKENS = {}
+SECRETS = {}
 
 config_filepath = "/app/config.yml"
 default_config = "default_config.yml"
@@ -13,7 +13,7 @@ default_config = "default_config.yml"
 with open(config_filepath, "r") as stream:
     try:
         CONFIG = yaml.safe_load(stream)
-        TOKENS = CONFIG["tokens"]
+        SECRETS = CONFIG["secrets"]
 
     except FileNotFoundError as err:
         print("Unable to load config.yml. No such file or directory.")

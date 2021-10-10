@@ -1,14 +1,31 @@
 #!/usr/bin/python
 
-from config_handler import TOKENS
+from config_handler import SECRETS
 import math
 
 import aiohttp
-from typing import Awaitable
-from typing import Any
 
-google_maps_token = TOKENS["google_maps"]
-weather_api_token = TOKENS["weather_api"]
+google_maps_token = SECRETS["google_maps"]
+weather_api_token = SECRETS["weather_api"]
+
+# Flightpath
+def get_coords(start: str, end: str):
+    """Parse string tuple to normal tuple
+
+    Args:
+        start (str): [Start coords TUPLE format but inside string]
+        end (str): [End coords TUPLE format but inside string
+
+    Returns:
+        [TUPLE]: [Returns the converted tuple]
+    """
+    coords = start.split(",")
+    start_coords = (float(coords[0]), float(coords[1]))
+
+    coords = end.split(",")
+    end_coords = (float(coords[0]), float(coords[1]))
+
+    return start_coords, end_coords
 
 
 def get_path_distance(start_coords: tuple, end_coords: tuple) -> dict:
@@ -49,9 +66,7 @@ def get_new_angle(
     return d_angle, d_angle + cur_angle  # TODO: do stuff
 
 
-async def get_waypoints(
-    start_coords: tuple, end_coords: tuple, points: int
-) -> Awaitable[dict[str, Any]]:
+async def get_waypoints(start_coords: tuple, end_coords: tuple, points: int):
     lat1, lng1 = start_coords
     lat2, lng2 = end_coords
 
