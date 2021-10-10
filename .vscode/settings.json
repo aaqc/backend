@@ -3,6 +3,8 @@
     "editor.formatOnSave": true,
     "editor.tabSize": 4,
     "cSpell.words": [
-        "aiohttp"
+        "AAQC",
+        "aiohttp",
+        "pydantic"
     ]
 }

@@ -1,3 +1,4 @@
+from schema import User
 from config_handler import CONFIG
 import weather as weather_api
 import uvicorn
@@ -34,6 +35,16 @@ def verify_password(plain_password, hashed_password):
 
 def get_password_hash(password):
     return pwd_context.hash(password)
+
+
+@app.get("/users/:id", response_model=User)
+async def get_user(id: int):
+    return {
+        "id": id,
+        "username": "Alve är cool",
+        "full_name": "Alve Svarén",
+        "groups": [],
+    }
 
 
 # Misc
