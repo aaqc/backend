@@ -1,8 +1,9 @@
 from sqlalchemy import BINARY, Column, Float, ForeignKey, String
 from sqlalchemy.dialects.mysql import BIGINT, INTEGER, TINYINT
 from sqlalchemy.orm import relationship
-from .database import Base
+from sqlalchemy.ext.declarative import declarative_base
 
+Base = declarative_base()
 metadata = Base.metadata
 
 

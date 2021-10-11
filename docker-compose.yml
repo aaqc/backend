@@ -1,7 +1,12 @@
-version: '3'
+version: "3"
 services:
-  core_api:
-    container_name: "aaqc-backend"
-    build: .
-    ports:
-      - 8000:80
+    core_api:
+        container_name: "aaqc-backend"
+        build: .
+        ports:
+            - 8000:80
+        network_mode: host
+# networks:
+#     host:
+#         name: host
+#         external: true
