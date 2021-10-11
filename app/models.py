@@ -2,6 +2,25 @@ from sqlalchemy import BINARY, Column, Float, ForeignKey, String
 from sqlalchemy.dialects.mysql import BIGINT, INTEGER, TINYINT
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
+from config_handler import CONFIG
+
+db_host = CONFIG["db_host"]
+db_user = CONFIG["db_user"]
+db_password = CONFIG["db_password"]
+db_name = CONFIG["db_name"]
+
+
+SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
+# SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
+SQLALCHEMY_DATABASE_URL = f"mysql://{db_user}@{db_host}:3306"
+
+try:
+    engine = create_engine(SQLALCHEMY_DATABASE_URL)
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+except:
+    print("Failed to connect to the database")
 
 Base = declarative_base()
 metadata = Base.metadata

@@ -11,6 +11,7 @@ class AAQCBaseModel(BaseModel):
 
 
 class User(AAQCBaseModel):
+    id: int
     username: str
     email: str
     full_name: str

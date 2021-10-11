@@ -1,4 +1,5 @@
-from schema import User
+import schema
+import models
 from config_handler import CONFIG
 import weather as weather_api
 import uvicorn
@@ -10,12 +11,13 @@ from logging import Logger
 from json.decoder import JSONDecodeError
 from gateway import construct, construct_error, handle_message
 from fastapi.logger import logger
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
 from fastapi.security import OAuth2PasswordBearer
 from connection_manager import ConnectionManager
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import JWTError, jwt
 from passlib.context import CryptContext
+from sqlalchemy.orm import Session
+from os import _exit
 
 SECRET_KEY = CONFIG["jwt_secret"]
 ALGORITHM = "HS256"
@@ -23,7 +25,22 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 logger: Logger
 
+try:
+    models.Base.metadata.create_all(bind=models.engine)
+except Exception as e:
+    print(f"\nFailed to connect to the DataBase\n{e}\n")
+
 app = FastAPI()
+
+# Dependency
+def get_db():
+    db = models.SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
 manager = ConnectionManager()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -37,11 +54,13 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-@app.get("/users/:id", response_model=User)
-async def get_user(id: int):
+@app.get("/users/:id", response_model=schema.User)
+async def get_user(id: int, db: Session = Depends(get_db)):
+    print(db.query(models.User))
     return {
         "id": id,
         "username": "Alve är cool",
+        "email": "alve@gmail.com",
         "full_name": "Alve Svarén",
         "groups": [],
     }
