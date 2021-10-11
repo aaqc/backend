@@ -11,16 +11,10 @@ db_user = CONFIG["db_user"]
 db_password = CONFIG["db_password"]
 db_name = CONFIG["db_name"]
 
-
-SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
-# SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
+# Connect to the database
 SQLALCHEMY_DATABASE_URL = f"mysql://{db_user}@{db_host}:3306"
-
-try:
-    engine = create_engine(SQLALCHEMY_DATABASE_URL)
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-except:
-    print("Failed to connect to the database")
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 metadata = Base.metadata

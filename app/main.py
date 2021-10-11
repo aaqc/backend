@@ -28,7 +28,9 @@ logger: Logger
 try:
     models.Base.metadata.create_all(bind=models.engine)
 except Exception as e:
-    print(f"\nFailed to connect to the DataBase\n{e}\n")
+    print(
+        f"\nFailed to connect to the DataBase\n\n{e}\n\nCheck models.py (line 14) :D\n"
+    )
 
 app = FastAPI()
 
