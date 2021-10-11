@@ -28,9 +28,8 @@ def authenticate_user(fake_db, username: str, password: str):
 def get_user(db, username: str):
     if username in db:
         user_dict = db[username]
-        return UserInDB(**user_dict)
+        # return UserInDB(**user_dict)
 
 
 if __name__ == "__main__":
-
-    print(SessionLocal().query(User).all())
+    print(SessionLocal().query(User).all()[0].__dict__)
