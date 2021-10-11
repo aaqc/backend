@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pydantic import BaseModel
-from typing import Optional
+from typing import Any, Optional
 
 
 class AAQCBaseModel(BaseModel):
@@ -57,7 +57,7 @@ class Waypoint(AAQCBaseModel):
     battery_level: float
 
 
-models: list[BaseModel] = [User, UserCreate, Group, Drone, FlightPath, Waypoint]
+models: list[Any] = [User, UserCreate, Group, Drone, FlightPath, Waypoint]
 
 for model in models:
     model.update_forward_refs()

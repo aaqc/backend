@@ -2,10 +2,5 @@
     "python.formatting.provider": "black",
     "editor.formatOnSave": true,
     "editor.tabSize": 4,
-    "cSpell.words": [
-        "AAQC",
-        "aiohttp",
-        "pydantic"
-    ],
-    "python.pythonPath": "/usr/bin/python"
+    "cSpell.words": ["AAQC", "aiohttp", "pydantic"]
 }

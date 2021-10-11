@@ -5,8 +5,3 @@ services:
         build: .
         ports:
             - 8000:80
-        network_mode: host
-# networks:
-#     host:
-#         name: host
-#         external: true
