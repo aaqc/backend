@@ -13,3 +13,4 @@ passlib[bcrypt]
 sqlalchemy
 PyMySQL[ed25519]
 mysqlclient
+pydantic[email]

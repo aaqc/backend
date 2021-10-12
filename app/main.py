@@ -25,12 +25,12 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 logger: Logger
 
-try:
-    models.Base.metadata.create_all(bind=models.engine)
-except Exception as e:
-    print(
-        f"\nFailed to connect to the DataBase\n\n{e}\n\nCheck models.py (line 14) :D\n"
-    )
+# try:
+#     models.Base.metadata.create_all(bind=models.engine)
+# except Exception as e:
+#     print(
+#         f"\nFailed to connect to the DataBase\n\n{e}\n\nCheck models.py (line 14) :D\n"
+#     )
 
 app = FastAPI()
 

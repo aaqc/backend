@@ -18,7 +18,7 @@ class AAQCBaseModelOrm(AAQCBaseModel):
 
 class BaseUser(AAQCBaseModel):
     username: str
-    email: str
+    email: EmailStr
     full_name: str
 
 
@@ -67,13 +67,15 @@ class Drone(AAQCBaseModel):
 
 
 class Waypoint(AAQCBaseModel):
-    index: int
     timestamp: int
     longitude: float
     latitude: float
     altitude: float
     heading: float
+
+    """speed of the drone when entering the waypoint in m/s"""
     speed: float
+    """battery level of the drone when entering the waypoint in %"""
     battery_level: float
 
 
