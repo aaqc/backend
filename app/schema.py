@@ -1,10 +1,10 @@
 from __future__ import annotations
 from pydantic import BaseModel
 from typing import Any, Optional
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 from typing import Any, Optional
 
-from pydantic.networks import validate_email
+from pydantic.networks import EmailStr
 
 
 class AAQCBaseModel(BaseModel):
@@ -24,24 +24,34 @@ class BaseUser(AAQCBaseModel):
 
 class CreateUser(BaseModel):
     username: str
-    email: str
+    email: EmailStr
     password: str
     full_name: str
 
 
 class User(BaseUser):
-    email: str
+    email: EmailStr
     full_name: str
-    groups: list[Group]  # Group
+    groups: list[Group]
 
 
 class UserLogin(BaseModel):
-    username: str
-    email: str
     password: str
 
 
-class UserCreate(UserLogin):
+class UserLoginEmail(UserLogin):
+    email: EmailStr
+
+
+class UserLoginUsername(UserLogin):
+    username: str
+
+
+class UserLoginFull(UserLoginEmail, UserLoginUsername):
+    pass
+
+
+class UserCreate(UserLoginFull):
     full_name: str
 
 
@@ -51,9 +61,20 @@ class Group(AAQCBaseModel):
 
 
 class Drone(AAQCBaseModel):
-    owner: Optional[User]
+    owner: Optional[User] = None
     name: str
-    history: list[FlightPath]  # Flightpath
+    history: list[FlightPath]
+
+
+class Waypoint(AAQCBaseModel):
+    index: int
+    timestamp: int
+    longitude: float
+    latitude: float
+    altitude: float
+    heading: float
+    speed: float
+    battery_level: float
 
 
 class FlightPath(AAQCBaseModel):
@@ -63,18 +84,7 @@ class FlightPath(AAQCBaseModel):
     end: Waypoint
     duration: int
     travel_distance: float
-
-
-class Waypoint(AAQCBaseModel):
-    path: FlightPath
-    index: int
-    timestamp: int
-    longitude: float
-    latitude: float
-    altitude: float
-    heading: float
-    speed: float
-    battery_level: float
+    waypoints: list[Waypoint]
 
 
 models: list[Any] = [User, UserCreate, Group, Drone, FlightPath, Waypoint]
