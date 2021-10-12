@@ -1,4 +1,5 @@
-from gateway import construct, construct_error, handle_message
+from gateway import construct, handle_message
+from error import error_compose
 from logging import Logger, debug
 from typing import Optional
 from starlette.responses import PlainTextResponse
@@ -43,14 +44,14 @@ async def connect_client_to_gateway(websocket: WebSocket):
             try:
                 data = await websocket.receive_json()
             except JSONDecodeError:
-                await websocket.send_json(construct_error("json-decode-error"))
+                await websocket.send_json(error_compose("json-decode-error"))
                 continue
 
             try:
                 await websocket.send_json(handle_message(data, manager))
             except Exception:
                 logger.error(format_exc())
-                await websocket.send_json(construct_error("generic-error"))
+                await websocket.send_json(error_compose("generic-error"))
 
     except WebSocketDisconnect:
         await manager.disconnect_client(con_id)
