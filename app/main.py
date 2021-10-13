@@ -25,9 +25,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 logger: Logger
-
 app = FastAPI()
-
 
 manager = ConnectionManager()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -40,17 +38,18 @@ async def post_auth(email: EmailStr, password: str):
 
 @app.get("/users")
 async def get_users(db: Session = Depends(get_db)):
-    users = db.execute(
-        """
-        SELECT Users.username, Users.id, UserGroups.group 
-        from Users
-        INNER JOIN UserGroups
-        ON Users.id=UserGroups.user;
-    """
-    )
+    users = db.query(models.User, models.t_UserGroups).join(models.t_UserGroups).all()
+    # users = db.execute(
+    #     """
+    #     SELECT Users.username, Users.id, UserGroups.group
+    #     from Users
+    #     INNER JOIN UserGroups
+    #     ON Users.id=UserGroups.user;
+    # """
+    # )
 
     # print(users.all())
-    return users.all()
+    return users
     # return list(map(lambda x: x.__dict__, db.query(models.User).all()))
 
 

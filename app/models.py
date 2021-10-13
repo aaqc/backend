@@ -13,10 +13,12 @@ db_user = CONFIG["db_user"]
 db_password = CONFIG["db_password"]
 db_name = CONFIG["db_name"]
 
-# Connect to the database
 DATABASE_URL = f"mysql+pymysql://{quote(CONFIG['db_user'])}:{quote(CONFIG['db_password'])}@{CONFIG['db_host']}/{CONFIG['db_name']}?charset=utf8mb4"
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+# Connect to the database
 
 Base = declarative_base()
 metadata = Base.metadata
