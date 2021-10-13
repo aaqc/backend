@@ -29,7 +29,7 @@ class CreateUser(BaseModel):
     full_name: str
 
 
-class User(BaseUser):
+class User(BaseUser, AAQCBaseModelOrm):
     email: EmailStr
     full_name: str
     groups: list[Group] = []

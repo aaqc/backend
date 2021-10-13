@@ -49,8 +49,8 @@ class Group(Base):
 user_groups = Table(
     "UserGroups",
     Base.metadata,
-    Column("user", ForeignKey("Users.id")),
-    Column("group", ForeignKey("Groups.id")),
+    Column("user", ForeignKey("Users.id"), primary_key=True),
+    Column("group", ForeignKey("Groups.id"), primary_key=True),
     Column("is_admin", TINYINT(1), nullable=False),
 )
 
@@ -74,7 +74,7 @@ class User(Base):
     password_hash = Column(BINARY(16), nullable=False)
     full_name = Column(String(255), nullable=False)
 
-    groups = relationship("Group", secondary=user_groups, backref="UserGroup")
+    groups = relationship("Group", secondary="UserGroups", backref="Groups")
 
 
 class Waypoint(Base):

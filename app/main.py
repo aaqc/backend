@@ -17,7 +17,7 @@ from connection_manager import ConnectionManager
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from os import _exit
+from database import get_db
 
 SECRET_KEY = CONFIG["jwt_secret"]
 ALGORITHM = "HS256"
@@ -25,35 +25,11 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 logger: Logger
 
-try:
-    models.Base.metadata.create_all(bind=models.engine)
-except Exception as e:
-    print(
-        f"\nFailed to connect to the DataBase\n\n{e}\n\nCheck models.py (line 14) :D\n"
-    )
-
 app = FastAPI()
-
-# Dependency
-def get_db():
-    db = models.SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 manager = ConnectionManager()
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
-
-def get_password_hash(password):
-    return pwd_context.hash(password)
 
 
 @app.get("/users", response_model=list[schema.User])
@@ -61,7 +37,7 @@ async def get_users(db: Session = Depends(get_db)):
     return list(map(lambda x: x.__dict__, db.query(models.User).all()))
 
 
-@app.get("/users/:id", response_model=schema.User)
+@app.get("/users/{id}", response_model=schema.User)
 async def get_user(id: int, db: Session = Depends(get_db)):
     return db.query(models.User).get(id).__dict__
     # return {
