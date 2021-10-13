@@ -8,7 +8,7 @@ from urllib.parse import quote
 
 DATABASE_URL = f"mysql+pymysql://{quote(CONFIG['db_user'])}:{quote(CONFIG['db_password'])}@{CONFIG['db_host']}/{CONFIG['db_name']}?charset=utf8mb4"
 engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+db = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
@@ -32,4 +32,4 @@ def get_user(db, username: str):
 
 
 if __name__ == "__main__":
-    print(SessionLocal().query(User).all()[0].__dict__)
+    print(db().query(User).all()[0].__dict__)

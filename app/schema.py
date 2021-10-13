@@ -32,7 +32,7 @@ class CreateUser(BaseModel):
 class User(BaseUser):
     email: EmailStr
     full_name: str
-    groups: list[Group]
+    groups: list[Group] = []
 
 
 class UserLogin(BaseModel):

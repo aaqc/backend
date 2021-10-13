@@ -25,12 +25,12 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 logger: Logger
 
-# try:
-#     models.Base.metadata.create_all(bind=models.engine)
-# except Exception as e:
-#     print(
-#         f"\nFailed to connect to the DataBase\n\n{e}\n\nCheck models.py (line 14) :D\n"
-#     )
+try:
+    models.Base.metadata.create_all(bind=models.engine)
+except Exception as e:
+    print(
+        f"\nFailed to connect to the DataBase\n\n{e}\n\nCheck models.py (line 14) :D\n"
+    )
 
 app = FastAPI()
 
@@ -56,16 +56,21 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
+@app.get("/users", response_model=list[schema.User])
+async def get_users(db: Session = Depends(get_db)):
+    return list(map(lambda x: x.__dict__, db.query(models.User).all()))
+
+
 @app.get("/users/:id", response_model=schema.User)
 async def get_user(id: int, db: Session = Depends(get_db)):
-    print(db.query(models.User))
-    return {
-        "id": id,
-        "username": "Alve är cool",
-        "email": "alve@gmail.com",
-        "full_name": "Alve Svarén",
-        "groups": [],
-    }
+    return db.query(models.User).get(id).__dict__
+    # return {
+    #     "id": id,
+    #     "username": "Alve är cool",
+    #     "email": "alve@gmail.com",
+    #     "full_name": "Alve Svarén",
+    #     "groups": [],
+    # }
 
 
 # Misc

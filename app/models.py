@@ -1,9 +1,12 @@
+from urllib.parse import quote
 from sqlalchemy import BINARY, Column, Float, ForeignKey, String
 from sqlalchemy.dialects.mysql import BIGINT, INTEGER, TINYINT
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
+from sqlalchemy.sql.schema import Table
+from sqlalchemy.sql.selectable import Join
 from config_handler import CONFIG
 
 db_host = CONFIG["db_host"]
@@ -12,8 +15,8 @@ db_password = CONFIG["db_password"]
 db_name = CONFIG["db_name"]
 
 # Connect to the database
-SQLALCHEMY_DATABASE_URL = f"mysql://{db_user}@{db_host}:3306"
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+DATABASE_URL = f"mysql+pymysql://{quote(CONFIG['db_user'])}:{quote(CONFIG['db_password'])}@{CONFIG['db_host']}/{CONFIG['db_name']}?charset=utf8mb4"
+engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
@@ -43,6 +46,25 @@ class Group(Base):
     name = Column(String(255), nullable=False)
 
 
+user_groups = Table(
+    "UserGroups",
+    Base.metadata,
+    Column("user", ForeignKey("Users.id")),
+    Column("group", ForeignKey("Groups.id")),
+    Column("is_admin", TINYINT(1), nullable=False),
+)
+
+
+# class UserGroup(Base):
+#     __tablename__ = "UserGroups"
+
+#     user = Column(ForeignKey("Users.id"), primary_key=True)
+#     group = Column(ForeignKey("Groups.id"), nullable=False, index=True)
+#     admin = Column(TINYINT(1), nullable=False)
+
+#     Group = relationship("Group")
+
+
 class User(Base):
     __tablename__ = "Users"
 
@@ -52,15 +74,7 @@ class User(Base):
     password_hash = Column(BINARY(16), nullable=False)
     full_name = Column(String(255), nullable=False)
 
-
-class UserGroup(User):
-    __tablename__ = "UserGroups"
-
-    user = Column(ForeignKey("Users.id"), primary_key=True)
-    group = Column(ForeignKey("Groups.id"), nullable=False, index=True)
-    admin = Column(TINYINT(1), nullable=False)
-
-    Group = relationship("Group")
+    groups = relationship("Group", secondary=user_groups, backref="UserGroup")
 
 
 class Waypoint(Base):
