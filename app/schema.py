@@ -57,7 +57,7 @@ class UserCreate(UserLoginFull):
 
 class Group(AAQCBaseModel):
     name: str
-    members: list[User]
+    members: list[User] = []
 
 
 class Drone(AAQCBaseModel):
@@ -87,6 +87,10 @@ class FlightPath(AAQCBaseModel):
     duration: int
     travel_distance: float
     waypoints: list[Waypoint]
+
+
+class AuthResponse(BaseModel):
+    token: str
 
 
 models: list[Any] = [User, UserCreate, Group, Drone, FlightPath, Waypoint]

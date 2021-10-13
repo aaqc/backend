@@ -4,7 +4,7 @@ from config_handler import CONFIG
 from models import (
     Column,
     Drone,
-    Flighpath,
+    FlightPath,
     Group,
     User,
     Waypoint,

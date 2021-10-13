@@ -1,3 +1,4 @@
+from pydantic.networks import EmailStr
 import schema
 import models
 from config_handler import CONFIG
@@ -32,9 +33,30 @@ manager = ConnectionManager()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-@app.get("/users", response_model=list[schema.User])
+@app.post("/auth/email", response_model=schema.AuthResponse)
+async def post_auth(email: EmailStr, password: str):
+    pass
+
+
+@app.get("/users")
 async def get_users(db: Session = Depends(get_db)):
-    return list(map(lambda x: x.__dict__, db.query(models.User).all()))
+    users = db.execute(
+        """
+        SELECT Users.username, Users.id, UserGroups.group 
+        from Users
+        INNER JOIN UserGroups
+        ON Users.id=UserGroups.user;
+    """
+    )
+
+    # print(users.all())
+    return users.all()
+    # return list(map(lambda x: x.__dict__, db.query(models.User).all()))
+
+
+@app.get("/groups", response_model=list[schema.Group])
+async def get_groups(db: Session = Depends(get_db)):
+    return list(map(lambda x: x.__dict__, db.query(models.Group, models.User).all()))
 
 
 @app.get("/users/{id}", response_model=schema.User)
