@@ -48,6 +48,13 @@ class Group(Base):
     name = Column(String(255), nullable=False)
 
 
+class UserGroup(Base):
+    __tablename__ = "UserGroups"
+    user = Column(ForeignKey("Users.id"), nullable=False, index=True, primary_key=True)
+    group = Column(ForeignKey("Groups.id"), nullable=False, index=True)
+    admin = Column(TINYINT(1))
+
+
 class User(Base):
     __tablename__ = "Users"
 
@@ -88,10 +95,10 @@ class Drone(Base):
     Group = relationship("Group")
 
 
-t_UserGroups = Table(
-    "UserGroups",
-    metadata,
-    Column("user", ForeignKey("Users.id"), nullable=False, index=True),
-    Column("group", ForeignKey("Groups.id"), nullable=False, index=True),
-    Column("admin", TINYINT(1)),
-)
+# t_UserGroups = Table(
+#     "UserGroups",
+#     metadata,
+#     Column("user", ForeignKey("Users.id"), nullable=False, index=True),
+#     Column("group", ForeignKey("Groups.id"), nullable=False, index=True),
+#     Column("admin", TINYINT(1)),
+# )

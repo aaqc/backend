@@ -19,6 +19,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from database import get_db
+from sqlalchemy import func
 
 SECRET_KEY = CONFIG["jwt_secret"]
 ALGORITHM = "HS256"
@@ -38,19 +39,18 @@ async def post_auth(email: EmailStr, password: str):
 
 @app.get("/users")
 async def get_users(db: Session = Depends(get_db)):
-    users = db.query(models.User, models.t_UserGroups).join(models.t_UserGroups).all()
-    # users = db.execute(
-    #     """
-    #     SELECT Users.username, Users.id, UserGroups.group
-    #     from Users
-    #     INNER JOIN UserGroups
-    #     ON Users.id=UserGroups.user;
-    # """
-    # )
-
-    # print(users.all())
+    users = (
+        db.query(models.User, models.UserGroup.group)
+        .join(models.UserGroup, models.UserGroup.user == models.User.id)
+        .all()
+    )
     return users
-    # return list(map(lambda x: x.__dict__, db.query(models.User).all()))
+
+
+@app.get("/usergroup")
+async def get_usergroup(db: Session = Depends(get_db)):
+    users = db.query(models.UserGroup.user, models.UserGroup.group).all()
+    return users
 
 
 @app.get("/groups", response_model=list[schema.Group])
@@ -61,13 +61,6 @@ async def get_groups(db: Session = Depends(get_db)):
 @app.get("/users/{id}", response_model=schema.User)
 async def get_user(id: int, db: Session = Depends(get_db)):
     return db.query(models.User).get(id).__dict__
-    # return {
-    #     "id": id,
-    #     "username": "Alve är cool",
-    #     "email": "alve@gmail.com",
-    #     "full_name": "Alve Svarén",
-    #     "groups": [],
-    # }
 
 
 # Misc
