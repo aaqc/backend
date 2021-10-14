@@ -37,13 +37,28 @@ async def post_auth(email: EmailStr, password: str):
     pass
 
 
-@app.get("/users")
+@app.get("/users", response_model=list[schema.User])
 async def get_users(db: Session = Depends(get_db)):
-    users = (
-        db.query(models.User, models.UserGroup.group)
-        .join(models.UserGroup, models.UserGroup.user == models.User.id)
-        .all()
-    )
+    users: list[schema.User] = []
+    for user in db.query(models.User):
+
+        group_ids = map(
+            lambda x: x.group,
+            db.query(models.UserGroup).filter(models.UserGroup.user == user.id).all(),
+        )
+
+        groups: list[schema.BaseGroup] = []
+
+        for group_id in group_ids:
+            group = db.query(models.Group).filter(models.Group.id == group_id).one()
+            groups.append(schema.BaseGroup(**group.__dict__))
+
+        users.append(
+            schema.User(
+                **user.__dict__,
+                groups=groups,
+            )
+        )
     return users
 
 

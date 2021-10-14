@@ -32,7 +32,7 @@ class CreateUser(BaseModel):
 class User(BaseUser, AAQCBaseModelOrm):
     email: EmailStr
     full_name: str
-    groups: list[Group] = []
+    groups: list[BaseGroup] = []
 
 
 class UserLogin(BaseModel):
@@ -55,8 +55,11 @@ class UserCreate(UserLoginFull):
     full_name: str
 
 
-class Group(AAQCBaseModel):
+class BaseGroup(AAQCBaseModel):
     name: str
+
+
+class Group(BaseGroup):
     members: list[User] = []
 
 
@@ -93,7 +96,7 @@ class AuthResponse(BaseModel):
     token: str
 
 
-models: list[Any] = [User, UserCreate, Group, Drone, FlightPath, Waypoint]
+models: list[Any] = [User, UserCreate, Group, Drone, FlightPath, Waypoint, BaseGroup]
 
 for model in models:
     model.update_forward_refs()
