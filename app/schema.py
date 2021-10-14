@@ -1,8 +1,9 @@
 from __future__ import annotations
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from typing import Any, Optional
 from pydantic import BaseModel
 from typing import Any, Optional
+import pydantic
 
 from pydantic.networks import EmailStr
 
@@ -27,6 +28,23 @@ class CreateUser(BaseModel):
     email: EmailStr
     password: str
     full_name: str
+
+    @validator("password")
+    def validate_password(cls, value: str):
+        if len(value) < 6:
+            raise ValueError("Password too short, minimum length 6 characters")
+        if not any(map(lambda x: x.isupper(), value)):
+            raise ValueError(
+                "Password needs to contain at least one uppercase character"
+            )
+        if not any(map(lambda x: not x.isupper(), value)):
+            raise ValueError(
+                "Password needs to contain at least one lowercase character"
+            )
+        if not any(map(lambda x: not x.isnumeric(), value)):
+            raise ValueError("Password needs to contain at least one number")
+
+        return value
 
 
 class User(BaseUser, AAQCBaseModelOrm):

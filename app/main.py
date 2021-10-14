@@ -19,7 +19,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from database import get_db
-from sqlalchemy import func
+from sqlalchemy import func, insert
 
 SECRET_KEY = CONFIG["jwt_secret"]
 ALGORITHM = "HS256"
@@ -29,12 +29,33 @@ logger: Logger
 app = FastAPI()
 
 manager = ConnectionManager()
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 @app.post("/auth/email", response_model=schema.AuthResponse)
-async def post_auth(email: EmailStr, password: str):
+async def post_auth_email(email: EmailStr, password: str):
     pass
+
+
+@app.post("/auth/username", response_model=schema.AuthResponse)
+async def post_auth_username(username: str, password: str):
+    pass
+
+
+@app.post("/register")
+async def create_new_user(data: schema.CreateUser, db: Session = Depends(get_db)):
+
+    new_data = data.__dict__
+
+    new_data["password_hash"] = bytes(pwd_context.hash(new_data["password"]), "utf8")
+    del new_data["password"]
+
+    expr = insert(models.User).values(**new_data)
+
+    db.execute(expr)
+    db.commit()
+    return {"success": True}
 
 
 @app.get("/users", response_model=list[schema.User])
@@ -73,9 +94,26 @@ async def get_groups(db: Session = Depends(get_db)):
     return list(map(lambda x: x.__dict__, db.query(models.Group, models.User).all()))
 
 
-@app.get("/users/{id}", response_model=schema.User)
+@app.get("/users/{id}")
 async def get_user(id: int, db: Session = Depends(get_db)):
-    return db.query(models.User).get(id).__dict__
+    #     db.query(models.User, models.UserGroup.group)
+    # .join(models.UserGroup, models.UserGroup.user == models.User.id)
+    # .filter(models.User.id == id)
+    # .all()
+    user = (
+        db.query(
+            models.User.id,
+            models.User.email,
+            models.User.full_name,
+            models.UserGroup.group,
+        )
+        .filter(models.User.id == id)
+        .all()
+    )
+    groups = (
+        db.query(models.UserGroup.group).filter(models.UserGroup.user == id).first()
+    )
+    return user, groups
 
 
 # Misc
