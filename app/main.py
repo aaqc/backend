@@ -1,4 +1,6 @@
 from pydantic.networks import EmailStr
+from sqlalchemy.sql.functions import user
+from sqlalchemy.sql.operators import concat_op
 import schema
 import models
 from config_handler import CONFIG
@@ -19,7 +21,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from database import get_db
-from sqlalchemy import func, insert
+from sqlalchemy import func, insert, select
 
 SECRET_KEY = CONFIG["jwt_secret"]
 ALGORITHM = "HS256"
@@ -58,61 +60,50 @@ async def create_new_user(data: schema.CreateUser, db: Session = Depends(get_db)
     return {"success": True}
 
 
-@app.get("/users", response_model=list[schema.User])
+@app.get("/users", response_model=list[schema.Users])
 async def get_users(db: Session = Depends(get_db)):
-    users: list[schema.User] = []
-    for user in db.query(models.User):
-
-        group_ids = map(
-            lambda x: x.group,
-            db.query(models.UserGroup).filter(models.UserGroup.user == user.id).all(),
-        )
-
-        groups: list[schema.BaseGroup] = []
-
-        for group_id in group_ids:
-            group = db.query(models.Group).filter(models.Group.id == group_id).one()
-            groups.append(schema.BaseGroup(**group.__dict__))
-
-        users.append(
-            schema.User(
-                **user.__dict__,
-                groups=groups,
-            )
-        )
+    users = db.query(
+        models.User.id, models.User.email, models.User.full_name, models.User.username
+    ).all()
     return users
 
 
-@app.get("/usergroup")
-async def get_usergroup(db: Session = Depends(get_db)):
-    users = db.query(models.UserGroup.user, models.UserGroup.group).all()
-    return users
+@app.get("/users/{id}", response_model=schema.User)
+async def get_user_by_id(id: int, db: Session = Depends(get_db)):
+    user_by_id = db.query(models.User).filter(models.User.id == id).first()
+    user_by_id = user_by_id.__dict__ if user_by_id != None else schema.User.__dict__
+    return user_by_id
 
 
-@app.get("/groups", response_model=list[schema.Group])
+@app.get("/groups", response_model=list[schema.Groups])
 async def get_groups(db: Session = Depends(get_db)):
-    return list(map(lambda x: x.__dict__, db.query(models.Group, models.User).all()))
+    groups = list(map(lambda x: x.__dict__, db.query(models.Group).all()))
+    return groups
 
 
-@app.get("/users/{id}")
-async def get_user(id: int, db: Session = Depends(get_db)):
+@app.get("/group/{id}", response_model=schema.Group)
+async def get_group_by_id(id: int, db: Session = Depends(get_db)):
+    group_by_id = db.query(models.Group).filter(models.Group.id == id).first()
+    group_by_id = group_by_id.__dict__ if group_by_id != None else schema.Group.__dict__
+    return group_by_id
 
-    user = dict(
-        (
-            db.query(
-                models.User.id,
-                models.User.email,
-                models.User.full_name,
-            )
-            .filter(models.User.id == id)
-            .first()
-        )
-    )
-    groups = db.query(models.UserGroup.group).filter(models.UserGroup.user == id).all()
-    groups_id = [value for (value,) in groups]
-    user["groups"] = groups_id
 
-    return user
+@app.get("/drones")
+async def get_drones(db: Session = Depends(get_db)):
+    drones = list(map(lambda x: x.__dict__, db.query(models.Drone).all()))
+    return drones
+
+
+@app.get("/flightpaths/{drone_id}")
+async def get_drones(drone_id: int, db: Session = Depends(get_db)):
+    drones = list(map(lambda x: x.__dict__, db.query(models.FlightPath).all()))
+    return drones
+
+
+@app.get("/waypoints/{flightpath_id}")
+async def get_drones(flightpath_id: int, db: Session = Depends(get_db)):
+    drones = list(map(lambda x: x.__dict__, db.query(models.Waypoint).all()))
+    return drones
 
 
 # Misc

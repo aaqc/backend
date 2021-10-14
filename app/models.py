@@ -2,7 +2,7 @@ from urllib.parse import quote
 from sqlalchemy import BINARY, Column, Float, ForeignKey, String
 from sqlalchemy.dialects.mysql import BIGINT, INTEGER, TINYINT
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import sessionmaker, relationship, backref, deferred
 from sqlalchemy import create_engine
 from sqlalchemy.sql.schema import Table
 from sqlalchemy.sql.selectable import Join
@@ -19,9 +19,46 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 # Connect to the database
-
 Base = declarative_base()
 metadata = Base.metadata
+
+
+UserGroups = Table(
+    "UserGroups",
+    metadata,
+    Column("user", ForeignKey("Users.id"), nullable=False, index=True),
+    Column("group", ForeignKey("Groups.id"), nullable=False, index=True),
+    Column("admin", TINYINT(1)),
+)
+
+
+class Group(Base):
+    __tablename__ = "Groups"
+
+    id = Column(INTEGER(10), primary_key=True)
+    name = Column(String(255), nullable=False)
+    members = relationship(
+        "User",
+        secondary=UserGroups,
+        lazy="subquery",
+        backref=backref("all_members", lazy=True),
+    )
+
+
+class User(Base):
+    __tablename__ = "Users"
+
+    id = Column(INTEGER(10), primary_key=True)
+    username = Column(String(255), nullable=False, unique=True)
+    email = Column(String(255), nullable=False, unique=True)
+    password_hash = deferred(Column(BINARY(16), nullable=False))
+    full_name = Column(String(255), nullable=False)
+    groups = relationship(
+        "Group",
+        secondary=UserGroups,
+        lazy="subquery",
+        backref=backref("all_groups", lazy=True),
+    )
 
 
 class FlightPath(Base):
@@ -39,30 +76,6 @@ class FlightPath(Base):
     Waypoint = relationship("Waypoint", primaryjoin="FlightPath.end == Waypoint.id")
     User = relationship("User")
     Waypoint1 = relationship("Waypoint", primaryjoin="FlightPath.start == Waypoint.id")
-
-
-class Group(Base):
-    __tablename__ = "Groups"
-
-    id = Column(INTEGER(10), primary_key=True)
-    name = Column(String(255), nullable=False)
-
-
-class UserGroup(Base):
-    __tablename__ = "UserGroups"
-    user = Column(ForeignKey("Users.id"), nullable=False, index=True, primary_key=True)
-    group = Column(ForeignKey("Groups.id"), nullable=False, index=True)
-    admin = Column(TINYINT(1))
-
-
-class User(Base):
-    __tablename__ = "Users"
-
-    id = Column(INTEGER(10), primary_key=True)
-    username = Column(String(255), nullable=False, unique=True)
-    email = Column(String(255), nullable=False, unique=True)
-    password_hash = Column(BINARY(16), nullable=False)
-    full_name = Column(String(255), nullable=False)
 
 
 class Waypoint(Base):
@@ -93,12 +106,3 @@ class Drone(Base):
     token_hash = Column(BINARY(16), nullable=False)
 
     Group = relationship("Group")
-
-
-# t_UserGroups = Table(
-#     "UserGroups",
-#     metadata,
-#     Column("user", ForeignKey("Users.id"), nullable=False, index=True),
-#     Column("group", ForeignKey("Groups.id"), nullable=False, index=True),
-#     Column("admin", TINYINT(1)),
-# )
