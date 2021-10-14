@@ -48,6 +48,7 @@ class CreateUser(BaseModel):
 
 
 class User(BaseUser, AAQCBaseModelOrm):
+    id: int
     email: EmailStr
     full_name: str
     groups: list[BaseGroup] = []

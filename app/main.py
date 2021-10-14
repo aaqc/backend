@@ -96,24 +96,23 @@ async def get_groups(db: Session = Depends(get_db)):
 
 @app.get("/users/{id}")
 async def get_user(id: int, db: Session = Depends(get_db)):
-    #     db.query(models.User, models.UserGroup.group)
-    # .join(models.UserGroup, models.UserGroup.user == models.User.id)
-    # .filter(models.User.id == id)
-    # .all()
-    user = (
-        db.query(
-            models.User.id,
-            models.User.email,
-            models.User.full_name,
-            models.UserGroup.group,
+
+    user = dict(
+        (
+            db.query(
+                models.User.id,
+                models.User.email,
+                models.User.full_name,
+            )
+            .filter(models.User.id == id)
+            .first()
         )
-        .filter(models.User.id == id)
-        .all()
     )
-    groups = (
-        db.query(models.UserGroup.group).filter(models.UserGroup.user == id).first()
-    )
-    return user, groups
+    groups = db.query(models.UserGroup.group).filter(models.UserGroup.user == id).all()
+    groups_id = [value for (value,) in groups]
+    user["groups"] = groups_id
+
+    return user
 
 
 # Misc
