@@ -15,7 +15,7 @@ from starlette.responses import RedirectResponse
 from starlette.responses import PlainTextResponse
 from logging import Logger
 from json.decoder import JSONDecodeError
-from gateway import construct, construct_error, handle_message
+from gateway import construct, handle_message
 from fastapi.logger import logger
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
 from fastapi.security import OAuth2PasswordBearer
@@ -68,7 +68,6 @@ async def post_auth_username(data: schema.UserLoginUsername):
 
 @app.post("/register")
 async def create_new_user(data: schema.CreateUser, db: Session = Depends(get_db)):
-
     new_data = data.__dict__
 
     new_data["password_hash"] = bytes(pwd_context.hash(new_data["password"]), "utf8")

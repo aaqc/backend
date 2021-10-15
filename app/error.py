@@ -1,6 +1,7 @@
 from typing import Any
 
 
+
 error_msgs = {
     "json-decode-error": "Message could not be parsed",
     "message-type-missing": "The type parameter is missing",
