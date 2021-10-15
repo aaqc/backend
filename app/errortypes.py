@@ -2,7 +2,12 @@ from fastapi import HTTPException
 
 
 class API_Error(Exception):
-    def __init__(self, status_code: int = 500, error: str = "api-error", errorString: str = "API Error"):
+    def __init__(
+        self,
+        status_code: int = 500,
+        error: str = "api-error",
+        errorString: str = "API Error",
+    ):
         self.status_code = status_code
         self.error = error
         self.errorString = errorString
