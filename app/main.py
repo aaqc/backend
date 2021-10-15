@@ -1,3 +1,4 @@
+from typing import Union
 from pydantic.networks import EmailStr
 from sqlalchemy.sql.functions import user
 from sqlalchemy.sql.operators import concat_op
@@ -21,7 +22,7 @@ from connection_manager import ConnectionManager
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from database import get_db
+from database import get_db, user_by_email, verify_password
 from sqlalchemy import func, insert, select
 
 # da
@@ -37,13 +38,16 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-@app.post("/auth/email", response_model=schema.AuthResponse)
-async def post_auth_email(email: EmailStr, password: str):
-    pass
+@app.post("/auth/email", response_model=Union[schema.AuthResponse, None])
+async def post_auth_email(data: schema.UserLoginEmail, db: Session = Depends(get_db)):
+    user = user_by_email(db, data.email)
+    if user and verify_password(user, data.password):
+        return {"token": "hejsan"}
+    return None
 
 
 @app.post("/auth/username", response_model=schema.AuthResponse)
-async def post_auth_username(username: str, password: str):
+async def post_auth_username(data: schema.UserLoginUsername):
     pass
 
 
@@ -97,7 +101,7 @@ async def get_drones(db: Session = Depends(get_db)):
 
 
 @app.get("/flightpaths/{drone_id}")
-async def get_drones(drone_id: int, db: Session = Depends(get_db)):
+async def get_paths(drone_id: int, db: Session = Depends(get_db)):
     drones = (
         db.query(models.FlightPath).filter(models.FlightPath.drone == drone_id).all()
     )

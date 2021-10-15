@@ -49,10 +49,10 @@ class CreateUser(BaseModel):
 
 # Many users
 class Users(AAQCBaseModel):
-    id: int = None
-    email: EmailStr = None
-    full_name: str = None
-    username: str = None
+    id: int
+    email: EmailStr
+    full_name: str
+    username: str
 
 
 # One user
