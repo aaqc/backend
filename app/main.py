@@ -84,7 +84,7 @@ async def create_new_user(data: schema.CreateUser, db: Session = Depends(get_db)
     try:
         db.execute(expr)
         db.commit()
-    except sqlalchemy.exc as err:
+    except sqlalchemy.exc, sqlalchemy.orm.exc:
         raise UserCreationFailure 
     
     return {"success": True}
