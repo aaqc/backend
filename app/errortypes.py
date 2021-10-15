@@ -2,9 +2,9 @@ from fastapi import HTTPException
 
 
 def API_Error(Exception):
-    def __init__(self, message: str = "API Error", errorcode: int = 500):
+    def __init__(self, message: str = "API Error", status_code: int = 500):
         self.message = message
-        self.errorcode = errorcode
+        self.status_code = status_code
 
 
 def GenericError(API_Error):
@@ -17,46 +17,46 @@ def MessageTypeMissing(API_Error):
     def __init__(self, *args, **kwargs):
         super(*args, **kwargs)
         self.message = "The type parameter is missing"
-        self.errorcode = 400
+        self.status_code = 400
 
 
 def MessageTypeInvalid(API_Error):
     def __init__(self, *args, **kwargs):
         super(*args, **kwargs)
         self.message = "The type parameter is of incorrect type"
-        self.errorcode = 400
+        self.status_code = 400
 
 
-def NotImplemented(API_Error):
+def APINotImplemented(API_Error):
     def __init__(self, *args, **kwargs):
         super(*args, **kwargs)
         self.message = "Not implemented"
-        self.errorcode = 501
+        self.status_code = 501
 
 
 def UserNotFound(API_Error):
     def __init__(self, *args, **kwargs):
         super(*args, **kwargs)
         self.message = "User not found"
-        self.errorcode = 404
+        self.status_code = 404
 
 
 def AuthFailure(API_Error):
     def __init__(self, *args, **kwargs):
         super(*args, **kwargs)
         self.message = "Authetication failure"
-        self.errorcode = 401
+        self.status_code = 401
 
 
 def UserCreationFailure(API_Error):
     def __init__(self, *args, **kwargs):
         super(*args, **kwargs)
         self.message = "User creation failed. Possible duplicate credentials"
-        self.errorcode = 400
+        self.status_code = 400
 
 
 def ThirdPartyError(API_Error):
     def __init__(self, *args, **kwargs):
         super(*args, **kwargs)
         self.message = "Third-party API or service failed. Nothing we can do :("
-        self.errorcode = 503
+        self.status_code = 503

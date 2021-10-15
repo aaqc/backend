@@ -17,7 +17,7 @@ from logging import Logger
 from json.decoder import JSONDecodeError
 from gateway import construct, handle_message
 from fastapi.logger import logger
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, Depends
 from fastapi.security import OAuth2PasswordBearer
 from connection_manager import ConnectionManager
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -205,6 +205,14 @@ def flightpath_distance(start: str, end: str):
 async def get_weather(lat: float, lng: float):
     weather = await weather_api.get_weather_at_coords(lat, lng)
     return weather
+
+
+@app.exception_handler(API_Error)
+async def api_error_handler(request: Request, exc: API_Error):
+    return JSONResponse(
+            status_code = exc.status_code,
+            content =  {"message": exc.message}
+    )
 
 
 if __name__ == "__main__":
