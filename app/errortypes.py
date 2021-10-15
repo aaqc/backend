@@ -17,12 +17,13 @@ def MessageTypeMissing(API_Error):
     def __init__(self, *args, **kwargs):
         super(*args, **kwargs)
         self.message = "The type parameter is missing"
-
+        self.errorcode = 400
 
 def MessageTypeInvalid(API_Error):
     def __init__(self, *args, **kwargs):
         super(*args, **kwargs)
         self.message = "The type parameter is of incorrect type"
+        self.errorcode = 400
 
 
 def NotImplemented(API_Error):
