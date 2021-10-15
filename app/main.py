@@ -18,6 +18,7 @@ from json.decoder import JSONDecodeError
 from gateway import construct, handle_message
 from fastapi.logger import logger
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, Depends
+from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from connection_manager import ConnectionManager
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
