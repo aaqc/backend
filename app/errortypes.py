@@ -9,7 +9,7 @@ from fastapi import HTTPException
 # }
 
 def API_Error(Exception):
-    def __init__(self, message: str="API Error", errorcode: int=400):
+    def __init__(self, message: str="API Error", errorcode: int=500):
         self.message = message
         self.errorcode = errorcode
 
@@ -53,3 +53,9 @@ def UserCreationFailure(API_Error):
         self.message = "User creation failed. Possible duplicate credentials"
         self.errorcode = 400
 
+
+def ThirdPartyError(API_Error):
+    def __init__(self, *args, **kwargs):
+        super(*args, **kwargs)
+        self.message = "Third-party API or service failed. Nothing we can do :("
+        self.errorcode = 503 

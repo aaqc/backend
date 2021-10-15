@@ -87,7 +87,7 @@ async def create_new_user(data: schema.CreateUser, db: Session = Depends(get_db)
     except sqlalchemy.exc, sqlalchemy.orm.exc:
         raise UserCreationFailure 
     
-    return {"success": True}
+    return {"success": True} # TODO: return something useful
 
 
 @app.get("/users", response_model=list[schema.BaseUser])
@@ -160,7 +160,7 @@ async def connect_client_to_gateway(websocket: WebSocket):
             try:
                 data = await websocket.receive_json()
             except JSONDecodeError:
-                await websocket.send_json(error_compose("json-decode-error"))
+                await websocket.send_json(error_compose("json-decode-error")) # TODO: better error handling
                 continue
 
             try:
