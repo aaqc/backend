@@ -6,4 +6,11 @@ pylint
 aiohttp
 aiodns
 PyYAML
-
+python-jose[cryptography]
+python-multipart
+cryptography
+passlib[bcrypt]
+sqlalchemy
+PyMySQL[ed25519]
+mysqlclient
+pydantic[email]
