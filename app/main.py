@@ -22,7 +22,7 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from database import get_db
 from sqlalchemy import func, insert, select
-
+#da
 SECRET_KEY = CONFIG["jwt_secret"]
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
