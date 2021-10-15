@@ -38,6 +38,8 @@ class CreateUser(BaseModel):
         if "@" in value:
             raise ValueError("Username can't contain '@'")
 
+        return value
+
     @validator("password")
     def validate_password(cls, value: str):
         if len(value) < 6:
