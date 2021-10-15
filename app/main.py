@@ -209,10 +209,7 @@ async def get_weather(lat: float, lng: float):
 
 @app.exception_handler(API_Error)
 async def api_error_handler(request: Request, exc: API_Error):
-    return JSONResponse(
-            status_code = exc.status_code,
-            content =  {"message": exc.message}
-    )
+    return JSONResponse(status_code=exc.status_code, content={"message": exc.message})
 
 
 if __name__ == "__main__":
