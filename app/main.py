@@ -27,6 +27,7 @@ from database import get_db, user_by_email, verify_password
 from sqlalchemy import func, insert, select
 from jose import jwt
 from datetime import datetime, timedelta
+from errortypes import *
 
 # JWT Secret
 SECRET_KEY = CONFIG["jwt_secret"]
@@ -44,6 +45,13 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 @app.post("/auth/email", response_model=Union[schema.AuthResponse, None])
 async def post_auth_email(data: schema.UserLoginEmail, db: Session = Depends(get_db)):
     user = user_by_email(db, data.email)
+
+    if not user:
+        raise UserNotFound
+
+    if not verify_password(user, data.password):
+        raise AuthFailure
+
     if user and verify_password(user, data.password):
         return {
             "access_token": jwt.encode(

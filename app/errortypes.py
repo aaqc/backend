@@ -9,8 +9,9 @@ from fastapi import HTTPException
 # }
 
 def API_Error(Exception):
-    def __init__(self, message: str="API Error"):
+    def __init__(self, message: str="API Error", errorcode: int=400):
         self.message = message
+        self.errorcode = errorcode
 
 def GenericError(API_Error):
     def __init__(self, *args, **kwargs):
@@ -32,4 +33,16 @@ def NotImplemented(API_Error):
         super(*args, **kwargs)
         self.message = "Not implemented"
 
+
+def UserNotFound(API_Error):
+    def __init__(self, *args, **kwargs):
+        super(*args, **kwargs)
+        self.message = "User not found"
+        self.errorcode = 404
+
+def AuthFailure(API_Error):
+    def __init__(self, *args, **kwargs):
+        super(*args, **kwargs)
+        self.message = "Authetication failure"
+        self.errorcode = 401
 
