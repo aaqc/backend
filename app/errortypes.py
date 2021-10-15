@@ -19,6 +19,7 @@ def MessageTypeMissing(API_Error):
         self.message = "The type parameter is missing"
         self.errorcode = 400
 
+
 def MessageTypeInvalid(API_Error):
     def __init__(self, *args, **kwargs):
         super(*args, **kwargs)
