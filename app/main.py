@@ -1,4 +1,5 @@
 from typing import Union
+from jose.constants import ALGORITHMS
 from pydantic.networks import EmailStr
 from sqlalchemy.sql.functions import user
 from sqlalchemy.sql.operators import concat_op
@@ -24,8 +25,10 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from database import get_db, user_by_email, verify_password
 from sqlalchemy import func, insert, select
+from jose import jwt
+from datetime import datetime, timedelta
 
-# da
+# JWT Secret
 SECRET_KEY = CONFIG["jwt_secret"]
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -42,7 +45,19 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 async def post_auth_email(data: schema.UserLoginEmail, db: Session = Depends(get_db)):
     user = user_by_email(db, data.email)
     if user and verify_password(user, data.password):
-        return {"token": "hejsan"}
+        return {
+            "access_token": jwt.encode(
+                {
+                    "iss": "aaqc",
+                    "iat": datetime.utcnow(),
+                    "exp": datetime.utcnow() + timedelta(minutes=15),
+                    "sub": user.username,
+                },
+                SECRET_KEY,
+                ALGORITHMS.HS256,
+            ),
+            "token_type": "bearer",
+        }
     return None
 
 
@@ -66,7 +81,7 @@ async def create_new_user(data: schema.CreateUser, db: Session = Depends(get_db)
     return {"success": True}
 
 
-@app.get("/users", response_model=list[schema.Users])
+@app.get("/users", response_model=list[schema.BaseUser])
 async def get_users(db: Session = Depends(get_db)):
     users = db.query(
         models.User.id, models.User.email, models.User.full_name, models.User.username
@@ -81,7 +96,7 @@ async def get_user_by_id(id: int, db: Session = Depends(get_db)):
     return user_by_id
 
 
-@app.get("/groups", response_model=list[schema.Groups])
+@app.get("/groups", response_model=list[schema.BaseGroup])
 async def get_groups(db: Session = Depends(get_db)):
     groups = list(map(lambda x: x.__dict__, db.query(models.Group).all()))
     return groups
