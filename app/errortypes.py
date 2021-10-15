@@ -1,13 +1,5 @@
 from fastapi import HTTPException
 
-# error_msgs = {
-#     "json-decode-error": "Message could not be parsed",
-#     "message-type-missing": "The type parameter is missing",
-#     "message-type-invalid": "The type parameter is of incorrect type (should be string)",
-#     "not-implemeneted": "The message type is not implemented",
-#     "generic-error": "Something went wrong, check logs",
-# }
-
 def API_Error(Exception):
     def __init__(self, message: str="API Error", errorcode: int=500):
         self.message = message
