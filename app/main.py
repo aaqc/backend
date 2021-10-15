@@ -1,28 +1,135 @@
-from gateway import construct, handle_message
-from error import error_compose
-from logging import Logger, debug
-from typing import Optional
-from starlette.responses import PlainTextResponse
-from logging import debug
-from starlette.responses import JSONResponse
-import uvicorn
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from starlette.responses import RedirectResponse
-
-from fastapi.responses import HTMLResponse
-import aiohttp
-from connection_manager import ConnectionManager
-from json.decoder import JSONDecodeError
-from time import time_ns
-from fastapi.logger import logger
-from traceback import format_exc
-import flightpath
+from typing import Union
+from jose.constants import ALGORITHMS
+from pydantic.networks import EmailStr
+from sqlalchemy.sql.functions import user
+from sqlalchemy.sql.operators import concat_op
+from models import Waypoint
+import schema
+import models
+from config_handler import CONFIG
 import weather as weather_api
+import uvicorn
+import flightpath
+from traceback import format_exc
+from starlette.responses import RedirectResponse
+from starlette.responses import PlainTextResponse
+from logging import Logger
+from json.decoder import JSONDecodeError
+from gateway import construct, construct_error, handle_message
+from fastapi.logger import logger
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
+from fastapi.security import OAuth2PasswordBearer
+from connection_manager import ConnectionManager
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from passlib.context import CryptContext
+from sqlalchemy.orm import Session
+from database import get_db, user_by_email, verify_password
+from sqlalchemy import func, insert, select
+from jose import jwt
+from datetime import datetime, timedelta
+
+# JWT Secret
+SECRET_KEY = CONFIG["jwt_secret"]
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 logger: Logger
-
 app = FastAPI()
+
 manager = ConnectionManager()
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
+@app.post("/auth/email", response_model=Union[schema.AuthResponse, None])
+async def post_auth_email(data: schema.UserLoginEmail, db: Session = Depends(get_db)):
+    user = user_by_email(db, data.email)
+    if user and verify_password(user, data.password):
+        return {
+            "access_token": jwt.encode(
+                {
+                    "iss": "aaqc",
+                    "iat": datetime.utcnow(),
+                    "exp": datetime.utcnow() + timedelta(minutes=15),
+                    "sub": user.username,
+                },
+                SECRET_KEY,
+                ALGORITHMS.HS256,
+            ),
+            "token_type": "bearer",
+        }
+    return None
+
+
+@app.post("/auth/username", response_model=schema.AuthResponse)
+async def post_auth_username(data: schema.UserLoginUsername):
+    pass
+
+
+@app.post("/register")
+async def create_new_user(data: schema.CreateUser, db: Session = Depends(get_db)):
+
+    new_data = data.__dict__
+
+    new_data["password_hash"] = bytes(pwd_context.hash(new_data["password"]), "utf8")
+    del new_data["password"]
+
+    expr = insert(models.User).values(**new_data)
+
+    db.execute(expr)
+    db.commit()
+    return {"success": True}
+
+
+@app.get("/users", response_model=list[schema.BaseUser])
+async def get_users(db: Session = Depends(get_db)):
+    users = db.query(
+        models.User.id, models.User.email, models.User.full_name, models.User.username
+    ).all()
+    return users
+
+
+@app.get("/users/{id}", response_model=schema.User)
+async def get_user_by_id(id: int, db: Session = Depends(get_db)):
+    user_by_id = db.query(models.User).filter(models.User.id == id).first()
+    user_by_id = user_by_id.__dict__ if user_by_id != None else schema.User.__dict__
+    return user_by_id
+
+
+@app.get("/groups", response_model=list[schema.BaseGroup])
+async def get_groups(db: Session = Depends(get_db)):
+    groups = list(map(lambda x: x.__dict__, db.query(models.Group).all()))
+    return groups
+
+
+@app.get("/group/{id}", response_model=schema.Group)
+async def get_group_by_id(id: int, db: Session = Depends(get_db)):
+    group_by_id = db.query(models.Group).filter(models.Group.id == id).first()
+    group_by_id = group_by_id.__dict__ if group_by_id != None else schema.Group.__dict__
+    return group_by_id
+
+
+@app.get("/drones")
+async def get_drones(db: Session = Depends(get_db)):
+    drones = list(map(lambda x: x.__dict__, db.query(models.Drone).all()))
+    return drones
+
+
+@app.get("/flightpaths/{drone_id}")
+async def get_paths(drone_id: int, db: Session = Depends(get_db)):
+    drones = (
+        db.query(models.FlightPath).filter(models.FlightPath.drone == drone_id).all()
+    )
+    return drones
+
+
+@app.get("/waypoints/{flightpath_id}")
+async def get_waypoints(flightpath_id: int, db: Session = Depends(get_db)):
+    waypoint = (
+        db.query(models.Waypoint).filter(models.Waypoint.path == flightpath_id).first()
+    )
+    return waypoint
+
 
 # Misc
 @app.get("/")
@@ -69,36 +176,9 @@ def active_connections():
     return {"count": len(manager.connections)}
 
 
-def get_coords(start: str, end: str):
-    """Parse string tuple to normal tuple
-
-    Args:
-        start (str): [Start coords TUPLE format but inside string]
-        end (str): [End coords TUPLE format but inside string
-
-    Returns:
-        [TUPLE]: [Returns the converted tuple]
-    """
-
-
-# Flightpath
-def get_coords(start: str, end: str):
-    coords = start.split(",")
-    start_coords = (float(coords[0]), float(coords[1]))
-
-    coords = end.split(",")
-    end_coords = (float(coords[0]), float(coords[1]))
-
-    return start_coords, end_coords
-
-
 @app.get("/flightpath/new")
 async def new_flightpath(start: str, end: str, points: int):
     start_coords, end_coords = flightpath.get_coords(start, end)
-    waypoints = await flightpath.get_waypoints(start_coords, end_coords, points)
-    return {"waypoints": waypoints}
-    start_coords, end_coords = get_coords(start, end)
-
     waypoints = await flightpath.get_waypoints(start_coords, end_coords, points)
     return {"waypoints": waypoints}
 

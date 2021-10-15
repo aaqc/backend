@@ -1,4 +1,9 @@
-# Default template, copy to "config.yml" and update relevant values 
-tokens:
-  google_maps: ""
-  weather_api: ""
+# Default template, copy to "config.yml" and update relevant values
+api_keys:
+    google: "GOOGLE_APIS_KEY_HERE"
+    openweathermap: "OPENWEATHERMAP_KEY_HERE"
+db_host: "172.18.0.1"
+db_user: aaqc
+db_password: "PASSWORD_HERE"
+db_name: aaqc
+jwt_secret: "RANDOM_SECRET_HERE" # `openssl rand -hex 32`
