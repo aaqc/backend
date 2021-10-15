@@ -41,7 +41,7 @@ class APINotImplemented(API_Error):
         super(*args, **kwargs)
         self.status_code = 501
         self.error = "api-not-implemented"
-        self.errorString = "Not implemented"
+        self.errorString = "API function not implemented"
 
 
 class UserNotFound(API_Error):
@@ -57,7 +57,9 @@ class AuthFailure(API_Error):
         super(*args, **kwargs)
         self.status_code = 401
         self.error = "auth-failure"
-        self.errorString = "Authetication failure"
+        self.errorString = (
+            "Authetication failure, invalid password or authentication token."
+        )
 
 
 class UserCreationFailure(API_Error):
