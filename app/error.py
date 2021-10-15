@@ -1,7 +1,6 @@
 from typing import Any
 
 
-
 error_msgs = {
     "json-decode-error": "Message could not be parsed",
     "message-type-missing": "The type parameter is missing",
@@ -19,7 +18,6 @@ error_types = {
 
 def error_compose(err) -> dict[str, Any]:
     error_type = err if type(err) == str else error_types[err]
-    
+
     error_msg = error_msgs[error_type]
     return {"success": False, "error": error_type, "error_message": error_msg}
-
