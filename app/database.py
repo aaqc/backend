@@ -19,7 +19,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Make sure the database is running and that your connection properties is correct
 Base.metadata.create_all(bind=engine)
-
 # Dependency
 def get_db():
     db = SessionLocal()

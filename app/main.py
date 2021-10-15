@@ -1,6 +1,7 @@
 from pydantic.networks import EmailStr
 from sqlalchemy.sql.functions import user
 from sqlalchemy.sql.operators import concat_op
+from models import Waypoint
 import schema
 import models
 from config_handler import CONFIG
@@ -97,14 +98,18 @@ async def get_drones(db: Session = Depends(get_db)):
 
 @app.get("/flightpaths/{drone_id}")
 async def get_drones(drone_id: int, db: Session = Depends(get_db)):
-    drones = list(map(lambda x: x.__dict__, db.query(models.FlightPath).all()))
+    drones = (
+        db.query(models.FlightPath).filter(models.FlightPath.drone == drone_id).all()
+    )
     return drones
 
 
 @app.get("/waypoints/{flightpath_id}")
-async def get_drones(flightpath_id: int, db: Session = Depends(get_db)):
-    drones = list(map(lambda x: x.__dict__, db.query(models.Waypoint).all()))
-    return drones
+async def get_waypoints(flightpath_id: int, db: Session = Depends(get_db)):
+    waypoint = (
+        db.query(models.Waypoint).filter(models.Waypoint.path == flightpath_id).first()
+    )
+    return waypoint
 
 
 # Misc

@@ -1,6 +1,6 @@
 from urllib.parse import quote
-from sqlalchemy import BINARY, Column, Float, ForeignKey, String
-from sqlalchemy.dialects.mysql import BIGINT, INTEGER, TINYINT
+from sqlalchemy import BINARY, Column, DateTime, Float, ForeignKey, String, Table
+from sqlalchemy.dialects.mysql import INTEGER, TINYINT
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship, backref, deferred
 from sqlalchemy import create_engine
@@ -65,17 +65,16 @@ class FlightPath(Base):
     __tablename__ = "FlightPaths"
 
     id = Column(INTEGER(10), primary_key=True)
-    drone = Column(ForeignKey("Drones.id"), nullable=False, index=True)
-    pilot = Column(ForeignKey("Users.id"), nullable=False, index=True)
-    start = Column(ForeignKey("Waypoints.id"), nullable=False, unique=True)
-    end = Column(ForeignKey("Waypoints.id"), nullable=False, unique=True)
+    drone = Column(INTEGER(10), nullable=False)
+    pilot = Column(INTEGER(10), nullable=False)
     duration = Column(INTEGER(10), nullable=False)
     travel_distance = Column(Float(8, True), nullable=False)
 
-    Drone = relationship("Drone")
-    Waypoint = relationship("Waypoint", primaryjoin="FlightPath.end == Waypoint.id")
-    User = relationship("User")
-    Waypoint1 = relationship("Waypoint", primaryjoin="FlightPath.start == Waypoint.id")
+    waypoints = relationship(
+        "Waypoint",
+        lazy="subquery",
+        backref=backref("all_waypoints", lazy=True),
+    )
 
 
 class Waypoint(Base):
@@ -83,18 +82,14 @@ class Waypoint(Base):
 
     id = Column(INTEGER(10), primary_key=True)
     path = Column(ForeignKey("FlightPaths.id"), nullable=False, index=True)
-    index = Column(INTEGER(10))
-    timestamp = Column(BIGINT(20), nullable=False)
+    point = Column(INTEGER(10), nullable=False)
+    timestamp = Column(DateTime, nullable=False)
     longitude = Column(Float(8, True), nullable=False)
     latitude = Column(Float(8, True), nullable=False)
     altitude = Column(Float(8, True), nullable=False)
     heading = Column(Float(8, True), nullable=False)
     speed = Column(Float(8, True), nullable=False)
     battery_level = Column(Float(8, True), nullable=False)
-
-    FlightPath = relationship(
-        "FlightPath", primaryjoin="Waypoint.path == FlightPath.id"
-    )
 
 
 class Drone(Base):
@@ -103,6 +98,6 @@ class Drone(Base):
     id = Column(INTEGER(10), primary_key=True)
     owner = Column(ForeignKey("Groups.id"), index=True)
     name = Column(String(255), nullable=False)
-    token_hash = Column(BINARY(16), nullable=False)
+    token_hash = deferred(Column(BINARY(16), nullable=False))
 
     Group = relationship("Group")
