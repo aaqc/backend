@@ -32,6 +32,7 @@ def NotImplemented(API_Error):
     def __init__(self, *args, **kwargs):
         super(*args, **kwargs)
         self.message = "Not implemented"
+        self.errorcode = 501
 
 
 def UserNotFound(API_Error):
@@ -45,4 +46,10 @@ def AuthFailure(API_Error):
         super(*args, **kwargs)
         self.message = "Authetication failure"
         self.errorcode = 401
+
+def UserCreationFailure(API_Error):
+    def __init__(self, *args, **kwargs):
+        super(*args, **kwargs)
+        self.message = "User creation failed. Possible duplicate credentials"
+        self.errorcode = 400
 

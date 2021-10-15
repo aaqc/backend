@@ -52,21 +52,19 @@ async def post_auth_email(data: schema.UserLoginEmail, db: Session = Depends(get
     if not verify_password(user, data.password):
         raise AuthFailure
 
-    if user and verify_password(user, data.password):
-        return {
-            "access_token": jwt.encode(
-                {
-                    "iss": "aaqc",
-                    "iat": datetime.utcnow(),
-                    "exp": datetime.utcnow() + timedelta(minutes=15),
-                    "sub": user.username,
-                },
-                SECRET_KEY,
-                ALGORITHMS.HS256,
-            ),
-            "token_type": "bearer",
-        }
-    return None
+    return {
+        "access_token": jwt.encode(
+            {
+                "iss": "aaqc",
+                "iat": datetime.utcnow(),
+                "exp": datetime.utcnow() + timedelta(minutes=15),
+                "sub": user.username,
+            },
+            SECRET_KEY,
+            ALGORITHMS.HS256,
+        ),
+        "token_type": "bearer",
+    }
 
 
 @app.post("/auth/username", response_model=schema.AuthResponse)
@@ -83,8 +81,12 @@ async def create_new_user(data: schema.CreateUser, db: Session = Depends(get_db)
 
     expr = insert(models.User).values(**new_data)
 
-    db.execute(expr)
-    db.commit()
+    try:
+        db.execute(expr)
+        db.commit()
+    except sqlalchemy.exc as err:
+        raise UserCreationFailure 
+    
     return {"success": True}
 
 
