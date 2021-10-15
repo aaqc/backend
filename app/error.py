@@ -17,7 +17,7 @@ error_types = {
 
 
 def error_compose(err) -> dict[str, Any]:
-    error_type = type(err) == str ? err : error_types[err]
+    error_type = err if type(err) == str else error_types[err]
     
     error_msg = error_msgs[error_type]
     return {"success": False, "error": error_type, "error_message": error_msg}
