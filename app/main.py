@@ -212,7 +212,11 @@ async def get_weather(lat: float, lng: float):
 async def api_error_handler(request: Request, exc: API_Error):
     return JSONResponse(
         status_code=exc.status_code,
-        content={"success": False, "error": exc.error, "error_message": exc.errorString},
+        content={
+            "success": False,
+            "error": exc.error,
+            "error_message": exc.errorString,
+        },
     )
 
 
