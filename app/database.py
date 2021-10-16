@@ -1,6 +1,11 @@
-from typing import Generator
+from re import I
+from typing import Any, Generator, Mapping
+from fastapi.security.oauth2 import OAuth2PasswordBearer
+from jose.constants import ALGORITHMS
+from pydantic.fields import Field
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm.query import Query
 from config_handler import CONFIG
 from models import (
     Column,
@@ -15,9 +20,16 @@ from models import (
 )
 from passlib.context import CryptContext
 from urllib.parse import quote
+from jose import jwt
+from fastapi import Depends, Header
+from fastapi.security.base import SecurityBase
+from pydantic import BaseModel
 import models
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+SECRET_KEY = CONFIG["jwt_secret"]
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth")
+
 
 # Make sure the database is running and that your connection properties is correct
 Base.metadata.create_all(bind=engine)
@@ -34,17 +46,31 @@ def verify_password(user: models.User, plain_password: str):
     return pwd_context.verify(plain_password, user.password_hash)
 
 
-def user_by_id(db: Session, id: int):
+def get_user_by_id(id: int, db: Session = Depends(get_db)):
     return db.query(models.User).get(id)
 
 
-def user_by_username(db: Session, username: str):
-    query = select(models.User).where(models.User.username == username)
-    return db.query(query).one_or_none()
+def decode_token(token: str) -> Mapping[str, Any]:
+    return jwt.decode(token, SECRET_KEY, ALGORITHMS.HS256)
 
 
-def user_by_email(db: Session, email: str):
-    return db.query(models.User).filter(models.User.email == email).one_or_none()
+def get_current_user(
+    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+):
+    username = decode_token(token).get("sub")
+    if not username:
+        raise ValueError("User missing from database")
+    return fetch_user(db, username)
+
+
+def fetch_user(db, ident: str):
+    print(ident, db)
+    query = db.query(models.User)
+    if "@" in ident:
+        query = query.filter(models.User.email == ident)
+    else:
+        query = query.filter(models.User.username == ident)
+    return query.one_or_none()
 
 
 # def authenticate_user(fake_db, username: str, password: str):
