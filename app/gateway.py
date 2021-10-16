@@ -33,4 +33,5 @@ def handle_message(message: Any, manager: ConnectionManager):
     try:
         return construct(*handle_data(manager, t), nonce)
     except (TypeError, NotImplementedError, KeyError) as error:
-        return error.compose_error(error)
+        # return error.compose_error(error)
+        return API_Error_Cast().compose_error(error)
