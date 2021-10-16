@@ -17,7 +17,7 @@ class GenericError(API_Error):
     def __init__(self, *args, **kwargs):
         super(*args, **kwargs)
         self.error = "generic-error"
-        self.errorString = "Something went wrong, check logs"
+        self.errorString = "Something went wrong"
 
 
 class MessageTypeMissing(API_Error):
