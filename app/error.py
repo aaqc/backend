@@ -24,16 +24,6 @@ error_casts = {
 
 
 class API_Error_Cast(API_Error):
-    def __init__(
-        self,
-        status_code: int = 500,
-        error: str = "ws-api-error",
-        errorString: str = "WS API Error",
-    ):
-        self.status_code = status_code
-        self.error = error
-        self.errorString = errorString
-
     def compose_error(self, error: Exception):
         error_cast = error_casts.get(error, GenericError)
         return error_cast().compose_error(self)
