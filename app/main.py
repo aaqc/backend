@@ -182,9 +182,7 @@ async def connect_client_to_gateway(websocket: WebSocket):
             try:
                 data = await websocket.receive_json()
             except JSONDecodeError:
-                await websocket.send_json(
-                    APIJSONDecodeError().compose_response()
-                )
+                await websocket.send_json(APIJSONDecodeError().compose_response())
                 continue
 
             try:
