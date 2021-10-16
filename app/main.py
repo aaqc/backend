@@ -183,15 +183,15 @@ async def connect_client_to_gateway(websocket: WebSocket):
                 data = await websocket.receive_json()
             except JSONDecodeError:
                 await websocket.send_json(
-                    error_compose("json-decode-error")
-                )  # TODO: use actual error types from errortypes.py
+                    APIJSONDecodeError().compose_response()
+                )
                 continue
 
             try:
                 await websocket.send_json(handle_message(data, manager))
             except Exception:
                 logger.error(format_exc())
-                await websocket.send_json(error_compose("generic-error"))
+                await websocket.send_json(GenericError().compose_response())
 
     except WebSocketDisconnect:
         await manager.disconnect_client(con_id)

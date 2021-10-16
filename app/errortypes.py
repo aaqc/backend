@@ -86,3 +86,11 @@ class ThirdPartyError(API_Error):
         self.status_code = 503
         self.error = "third-party-error"
         self.errorString = "Third-party API or service failed. Nothing we can do :("
+
+
+class APIJSONDecodeError(API_Error):
+    def __init__(self, *args, **kwargs):
+        super(*args, **kwargs)
+        self.status_code = 503
+        self.error = "json-decode-error"
+        self.errorString = "Failure to parse JSON"
