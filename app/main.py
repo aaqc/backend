@@ -29,7 +29,7 @@ from database import (
     get_current_user,
     oauth2_scheme,
 )
-from sqlalchemy import func, insert, select
+from sqlalchemy import func, insert, select, delete
 from jose import jwt
 from datetime import datetime, timedelta
 
@@ -45,7 +45,7 @@ manager = ConnectionManager()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-@app.get("/", response_model=schema.User)
+@app.get("/me", response_model=schema.User)
 async def get_index(user: models.User = Depends(get_current_user)):
     return user
 
