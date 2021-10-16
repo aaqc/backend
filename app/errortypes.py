@@ -12,6 +12,8 @@ class API_Error(Exception):
         self.error = error
         self.errorString = errorString
 
+    def compose_response(self):
+        return JSONResponse(status_code=self.status_code, content={ "success": False, "error": self.error, "error_message": self.errorString })
 
 class GenericError(API_Error):
     def __init__(self, *args, **kwargs):
