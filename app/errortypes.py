@@ -2,6 +2,12 @@ from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 
 
+error_casts = {
+    NotImplementedError: APINotImplemented,
+    TypeError: APITypeError,
+    KeyError: MessageTypeMissing,
+}
+
 class API_Error(Exception):
     def __init__(
         self,
@@ -22,6 +28,23 @@ class API_Error(Exception):
                 "error_message": self.errorString,
             },
         )
+
+
+class WS_Error(API_Error):
+    def __init__(
+        self,
+        status_code: int = 500,
+        error: str = "ws-api-error",
+        errorString: str = "WS API Error",
+    ):
+        self.status_code = status_code
+        self.error = error
+        self.errorString = errorString
+
+    def compose_error(self, error: Exception):
+        error_cast = error_casts.get(error, GenericError)
+        return error_cast().compose_error(self)
+
 
 
 class GenericError(API_Error):
@@ -54,6 +77,12 @@ class APINotImplemented(API_Error):
         self.error = "api-not-implemented"
         self.errorString = "API function not implemented"
 
+class APITypeError(API_Error):
+    def __init__(self, *args, **kwargs):
+        super(*args, **kwargs)
+        self.status_code = 501
+        self.error = "api-not-implemented"
+        self.errorString = "API function not implemented"
 
 class UserNotFound(API_Error):
     def __init__(self, *args, **kwargs):
