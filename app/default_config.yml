@@ -7,3 +7,4 @@ db_user: aaqc
 db_password: "PASSWORD_HERE"
 db_name: aaqc
 jwt_secret: "RANDOM_SECRET_HERE" # `openssl rand -hex 32`
+use_sqlite: false
