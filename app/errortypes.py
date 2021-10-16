@@ -8,6 +8,7 @@ error_casts = {
     KeyError: MessageTypeMissing,
 }
 
+
 class API_Error(Exception):
     def __init__(
         self,
@@ -46,7 +47,6 @@ class WS_Error(API_Error):
         return error_cast().compose_error(self)
 
 
-
 class GenericError(API_Error):
     def __init__(self, *args, **kwargs):
         super(*args, **kwargs)
@@ -77,12 +77,14 @@ class APINotImplemented(API_Error):
         self.error = "api-not-implemented"
         self.errorString = "API function not implemented"
 
+
 class APITypeError(API_Error):
     def __init__(self, *args, **kwargs):
         super(*args, **kwargs)
         self.status_code = 501
         self.error = "api-not-implemented"
         self.errorString = "API function not implemented"
+
 
 class UserNotFound(API_Error):
     def __init__(self, *args, **kwargs):
