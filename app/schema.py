@@ -59,7 +59,7 @@ class CreateUser(BaseModel):
 
 
 # One user
-class User(BaseUser):
+class User(BaseUser, AAQCBaseModelOrm):
     groups: List = []
 
 
@@ -70,22 +70,14 @@ class Group(AAQCBaseModel):
 
 
 class UserLogin(BaseModel):
+    identity: Union[str, EmailStr]
     password: str
 
 
-class UserLoginEmail(UserLogin):
-    email: EmailStr
-
-
-class UserLoginUsername(UserLogin):
+class UserCreate(BaseModel):
     username: str
-
-
-class UserLoginFull(UserLoginEmail, UserLoginUsername):
-    pass
-
-
-class UserCreate(UserLoginFull):
+    email: str
+    password: str
     full_name: str
 
 

@@ -17,13 +17,18 @@ from logging import Logger
 from json.decoder import JSONDecodeError
 from gateway import construct, construct_error, handle_message
 from fastapi.logger import logger
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, Request
 from connection_manager import ConnectionManager
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from database import get_db, user_by_email, verify_password
+from database import (
+    get_db,
+    verify_password,
+    fetch_user,
+    get_current_user,
+    oauth2_scheme,
+)
 from sqlalchemy import func, insert, select
 from jose import jwt
 from datetime import datetime, timedelta
@@ -31,26 +36,35 @@ from datetime import datetime, timedelta
 # JWT Secret
 SECRET_KEY = CONFIG["jwt_secret"]
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_DELTA = timedelta(minutes=30)
 
 logger: Logger
 app = FastAPI()
 
 manager = ConnectionManager()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-@app.post("/auth/email", response_model=Union[schema.AuthResponse, None])
-async def post_auth_email(data: schema.UserLoginEmail, db: Session = Depends(get_db)):
-    user = user_by_email(db, data.email)
-    if user and verify_password(user, data.password):
+@app.get("/", response_model=schema.User)
+async def get_index(user: models.User = Depends(get_current_user)):
+    return user
+
+
+@app.post("/auth", response_model=Union[schema.AuthResponse, None])
+async def post_auth(
+    # data: schema.UserLogin,
+    # request: Request,
+    db: Session = Depends(get_db),
+    form_data: OAuth2PasswordRequestForm = Depends(),
+):
+    user = fetch_user(db, form_data.username)
+    if user and verify_password(user, form_data.password):
         return {
             "access_token": jwt.encode(
                 {
                     "iss": "aaqc",
                     "iat": datetime.utcnow(),
-                    "exp": datetime.utcnow() + timedelta(minutes=15),
+                    "exp": datetime.utcnow() + ACCESS_TOKEN_EXPIRE_DELTA,
                     "sub": user.username,
                 },
                 SECRET_KEY,
@@ -61,9 +75,15 @@ async def post_auth_email(data: schema.UserLoginEmail, db: Session = Depends(get
     return None
 
 
-@app.post("/auth/username", response_model=schema.AuthResponse)
-async def post_auth_username(data: schema.UserLoginUsername):
-    pass
+@app.post("/groups/join/{group_id}")
+async def join_group(
+    group_id: int,
+    user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    db.execute(insert(models.UserGroups).values(user=user.id, group=group_id))
+    db.commit()
+    return {"success": True}
 
 
 @app.post("/register")
@@ -132,9 +152,9 @@ async def get_waypoints(flightpath_id: int, db: Session = Depends(get_db)):
 
 
 # Misc
-@app.get("/")
-async def index():
-    return RedirectResponse(url="/docs")
+# @app.get("/")
+# async def index():
+#     return RedirectResponse(url="/docs")
 
 
 @app.get("/ping")
