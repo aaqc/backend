@@ -12,9 +12,10 @@ class API_Error_Cast(API_Error):
     def __init__(self, error: Exception, *args, **kwargs):
         super(*args, **kwargs)
         self.error_cast = error_casts.get(error, GenericError)(*args, **kwargs)
+        print("#### CAST", self.error_cast)
 
-    def compose_error(self):
-        return self.error_cast.compose_error()
+    def compose_response(self):
+        return self.error_cast.compose_response()
 
 
 # error_msgs = {

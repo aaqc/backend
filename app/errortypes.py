@@ -27,6 +27,7 @@ class API_Error(Exception):
 class GenericError(API_Error):
     def __init__(self, *args, **kwargs):
         super(*args, **kwargs)
+        self.status_code = 500
         self.error = "generic-error"
         self.errorString = "Something went wrong"
 
@@ -59,8 +60,8 @@ class APITypeError(API_Error):
     def __init__(self, *args, **kwargs):
         super(*args, **kwargs)
         self.status_code = 501
-        self.error = "api-not-implemented"
-        self.errorString = "API function not implemented"
+        self.error = "api-type-error"
+        self.errorString = "API type error"
 
 
 class UserNotFound(API_Error):
