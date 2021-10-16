@@ -163,7 +163,7 @@ async def connect_client_to_gateway(websocket: WebSocket):
             except JSONDecodeError:
                 await websocket.send_json(
                     error_compose("json-decode-error")
-                )  # TODO: better error handling
+                )  # TODO: use actual error types from errortypes.py
                 continue
 
             try:
