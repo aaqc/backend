@@ -56,7 +56,7 @@ class AuthFailure(API_Error):
     def __init__(self, *args, **kwargs):
         super(*args, **kwargs)
         self.status_code = 401
-        self.error = "auth-failure"
+        self.error = "authentication-failure"
         self.errorString = (
             "Authetication failure, invalid password or authentication token."
         )
