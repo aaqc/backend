@@ -8,6 +8,12 @@ error_casts = {
 }
 
 
+class API_Error_Cast(API_Error):
+    def compose_error(self, error: Exception):
+        error_cast = error_casts.get(error, GenericError)
+        return error_cast().compose_error(self)
+
+
 # error_msgs = {
 #     "json-decode-error": "Message could not be parsed",
 #     "message-type-missing": "The type parameter is missing",
@@ -15,7 +21,7 @@ error_casts = {
 #     "not-implemeneted": "The message type is not implemented",
 #     "generic-error": "Something went wrong, check logs",
 # }
-# 
+#
 # error_types = {
 #     NotImplementedError: "not-implemeneted",
 #     TypeError: "message-type-invalid",
@@ -23,14 +29,8 @@ error_casts = {
 # }
 
 
-class API_Error_Cast(API_Error):
-    def compose_error(self, error: Exception):
-        error_cast = error_casts.get(error, GenericError)
-        return error_cast().compose_error(self)
-
-
 # def error_compose(err) -> dict[str, Any]:
 #     error_type = err if type(err) == str else error_types[err]
-# 
+#
 #     error_msg = error_msgs[error_type]
 #     return {"success": False, "error": error_type, "error_message": error_msg}
