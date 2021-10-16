@@ -3,7 +3,7 @@ from typing import Any, Optional, Union
 from time import time_ns
 from handle_data import handle_data
 import typing
-import error
+from error import API_Error_Cast
 
 
 def construct(
@@ -34,4 +34,4 @@ def handle_message(message: Any, manager: ConnectionManager):
         return construct(*handle_data(manager, t), nonce)
     except (TypeError, NotImplementedError, KeyError) as error:
         # return error.compose_error(error)
-        return API_Error_Cast().compose_error(error)
+        return API_Error_Cast(error).compose_error()
