@@ -29,26 +29,37 @@ class CreateUser(BaseModel):
     password: str
     full_name: str
 
+    @validator("username")
+    def validate_username(cls, value: str):
+        if len(value) < 2:
+            raise ValueError("Username is too short, minimum length 2 character")
+        if not all(map(lambda x: x.isascii(), value)):
+            raise ValueError("Username can only contain ascii characters")
+        if "@" in value:
+            raise ValueError("Username can't contain '@'")
+
+        return value
+
     @validator("password")
     def validate_password(cls, value: str):
         if len(value) < 6:
             raise ValueError("Password too short, minimum length 6 characters")
-        if not any(map(lambda x: x.isupper(), value)):
-            raise ValueError(
-                "Password needs to contain at least one uppercase character"
-            )
-        if not any(map(lambda x: not x.isupper(), value)):
-            raise ValueError(
-                "Password needs to contain at least one lowercase character"
-            )
-        if not any(map(lambda x: not x.isnumeric(), value)):
-            raise ValueError("Password needs to contain at least one number")
+        # if not any(map(lambda x: x.isupper(), value)):
+        #     raise ValueError(
+        #         "Password needs to contain at least one uppercase character"
+        #     )
+        # if not any(map(lambda x: not x.isupper(), value)):
+        #     raise ValueError(
+        #         "Password needs to contain at least one lowercase character"
+        #     )
+        # if not any(map(lambda x: not x.isnumeric(), value)):
+        #     raise ValueError("Password needs to contain at least one number")
 
         return value
 
 
 # One user
-class User(BaseUser):
+class User(BaseUser, AAQCBaseModelOrm):
     groups: List = []
 
 
@@ -59,22 +70,14 @@ class Group(AAQCBaseModel):
 
 
 class UserLogin(BaseModel):
+    identity: Union[str, EmailStr]
     password: str
 
 
-class UserLoginEmail(UserLogin):
-    email: EmailStr
-
-
-class UserLoginUsername(UserLogin):
+class UserCreate(BaseModel):
     username: str
-
-
-class UserLoginFull(UserLoginEmail, UserLoginUsername):
-    pass
-
-
-class UserCreate(UserLoginFull):
+    email: str
+    password: str
     full_name: str
 
 
