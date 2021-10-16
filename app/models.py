@@ -69,8 +69,8 @@ class FlightPath(Base):
     __tablename__ = "FlightPaths"
 
     id = Column(INTEGER(10), primary_key=True)
-    drone = Column(INTEGER(10), nullable=False)
-    pilot = Column(INTEGER(10), nullable=False)
+    drone = Column(ForeignKey("Drones.id"), nullable=False)
+    pilot = Column(ForeignKey("Users.id"), nullable=False)
     duration = Column(INTEGER(10), nullable=False)
     travel_distance = Column(Float(8, True), nullable=False)
 
