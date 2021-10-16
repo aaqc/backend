@@ -15,7 +15,7 @@ class API_Error_Cast(API_Error):
         print("#### CAST", self.error_cast)
 
     def compose_response(self):
-        return self.error_cast.compose_response()
+        json_response = self.error_cast.compose_response()
 
 
 # error_msgs = {
