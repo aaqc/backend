@@ -25,41 +25,41 @@ class API_Error(Exception):
 
 
 class GenericError(API_Error):
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.error = "generic-error"
         self.errorString = "Something went wrong"
 
 
 class MessageTypeMissing(API_Error):
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.status_code = 400
         self.error = "message-type-missing"
         self.errorString = "The type parameter is missing"
 
 
 class MessageTypeInvalid(API_Error):
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.status_code = 400
         self.error = "message-type-invalid"
         self.errorString = "The type parameter is of incorrect type"
 
 
 class APINotImplemented(API_Error):
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.status_code = 501
         self.error = "api-not-implemented"
         self.errorString = "API function not implemented"
 
 
 class UserNotFound(API_Error):
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.status_code = 404
         self.error = "user-not-found"
         self.errorString = "User not found"
 
 
 class AuthFailure(API_Error):
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.status_code = 401
         self.error = "authentication-failure"
         self.errorString = (
@@ -68,42 +68,42 @@ class AuthFailure(API_Error):
 
 
 class UserCreationFailure(API_Error):
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.status_code = 400
         self.error = "user-creation-failure"
         self.errorString = "User creation failed."
 
 
 class UsernameUnavailableError(API_Error):
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.status_code = 409
         self.error = "username-in-use"
         self.errorString = "Username already in use."
 
 
 class EmailUnavailableError(API_Error):
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.status_code = 409
         self.error = "email-in-use"
         self.errorString = "An account with this email already exists."
 
 
 class GroupJoinFailure(API_Error):
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.status_code = 400
         self.error = "group-join-failure"
         self.errorString = "Could not join group."
 
 
 class ThirdPartyError(API_Error):
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.status_code = 503
         self.error = "third-party-error"
-        self.errorString = "Third-party API or service failed. Nothing we can do :("
+        self.errorString = f"Third-party API or service failed. Nothing we can do :("
 
 
 class APIJSONDecodeError(API_Error):
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.status_code = 503
         self.error = "json-decode-error"
         self.errorString = "Failed to parse JSON"

@@ -86,4 +86,4 @@ async def get_waypoints(start_coords: tuple, end_coords: tuple, points: int):
                 waypoints = await response.json()
                 return waypoints
             except Exception:
-                raise ThirdPartyError("Unable to get waypoints")
+                raise ThirdPartyError
