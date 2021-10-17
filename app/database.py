@@ -73,12 +73,12 @@ def get_current_user(
 def create_group(
     db: Session,
     name: str,
-    current_user: models.User,
+    user_id: int,
 ):
     cursor = db.execute(insert(models.Group).values(name=name))
     db.execute(
         insert(models.UserGroups).values(
-            user=current_user.id, group=cursor.inserted_primary_key[0], admin=True
+            user=user_id, group=cursor.inserted_primary_key[0], admin=True
         )
     )
     db.commit()

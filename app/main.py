@@ -86,7 +86,10 @@ async def join_group(
     user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    db.execute(insert(models.UserGroups).values(user=user.id, group=group_id))
+    try:
+        db.execute(insert(models.UserGroups).values(user=user.id, group=group_id))
+    except SQLAlchemyError:
+        raise GroupJoinFailure
     db.commit()
     return {"success": True}
 
@@ -107,13 +110,24 @@ async def create_new_user(data: schema.CreateUser, db: Session = Depends(get_db)
     new_data["password_hash"] = bytes(pwd_context.hash(new_data["password"]), "utf8")
     del new_data["password"]
 
+    if db.query(models.User.email).filter_by(email=data.email).first() is not None:
+        raise EmailUnavailableError
+
+    if (
+        db.query(models.User.username).filter_by(username=data.username).first()
+        is not None
+    ):
+        raise UsernameUnavailableError
+
     expr = insert(models.User).values(**new_data)
 
     try:
-        db.execute(expr)
-        db.commit()
+        cursor = db.execute(expr)
+        create_group(db, data.full_name + "'s Group", cursor.inserted_primary_key[0])
+
     except SQLAlchemyError:
         raise UserCreationFailure
+    db.commit()
 
     return create_token(data.username)
 

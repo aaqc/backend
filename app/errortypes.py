@@ -63,7 +63,7 @@ class AuthFailure(API_Error):
         self.status_code = 401
         self.error = "authentication-failure"
         self.errorString = (
-            "Authetication failure, invalid password or authentication token."
+            "Authentication failure, invalid password or authentication token."
         )
 
 
@@ -71,7 +71,28 @@ class UserCreationFailure(API_Error):
     def __init__(self, *args, **kwargs):
         self.status_code = 400
         self.error = "user-creation-failure"
-        self.errorString = "User creation failed. Possible duplicate credentials"
+        self.errorString = "User creation failed."
+
+
+class UsernameUnavailableError(API_Error):
+    def __init__(self, *args, **kwargs):
+        self.status_code = 409
+        self.error = "username-in-use"
+        self.errorString = "Username already in use."
+
+
+class EmailUnavailableError(API_Error):
+    def __init__(self, *args, **kwargs):
+        self.status_code = 409
+        self.error = "email-in-use"
+        self.errorString = "An account with this email already exists."
+
+
+class GroupJoinFailure(API_Error):
+    def __init__(self, *args, **kwargs):
+        self.status_code = 400
+        self.error = "group-join-failure"
+        self.errorString = "Could not join group."
 
 
 class ThirdPartyError(API_Error):
@@ -85,4 +106,4 @@ class APIJSONDecodeError(API_Error):
     def __init__(self, *args, **kwargs):
         self.status_code = 503
         self.error = "json-decode-error"
-        self.errorString = "Failure to parse JSON"
+        self.errorString = "Failed to parse JSON"
