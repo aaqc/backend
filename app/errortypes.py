@@ -2,16 +2,16 @@ from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 
 
-class API_Error(Exception):
+class APIError(Exception):
     def __init__(
         self,
         status_code: int = 500,
         error: str = "api-error",
-        errorString: str = "API Error",
+        error_string: str = "API Error",
     ):
         self.status_code = status_code
         self.error = error
-        self.errorString = errorString
+        self.error_string = error_string
 
     def compose_response(self):
         return JSONResponse(
@@ -19,79 +19,91 @@ class API_Error(Exception):
             content={
                 "success": False,
                 "error": self.error,
-                "error_message": self.errorString,
+                "error_message": self.error_string,
             },
         )
 
 
-class GenericError(API_Error):
-    def __init__(self, *args, **kwargs):
-        super(*args, **kwargs)
+class GenericError(APIError):
+    def __init__(self):
         self.error = "generic-error"
-        self.errorString = "Something went wrong"
+        self.error_string = "Something went wrong"
 
 
-class MessageTypeMissing(API_Error):
-    def __init__(self, *args, **kwargs):
-        super(*args, **kwargs)
+class MessageTypeMissing(APIError):
+    def __init__(self):
         self.status_code = 400
         self.error = "message-type-missing"
-        self.errorString = "The type parameter is missing"
+        self.error_string = "The type parameter is missing"
 
 
-class MessageTypeInvalid(API_Error):
-    def __init__(self, *args, **kwargs):
-        super(*args, **kwargs)
+class MessageTypeInvalid(APIError):
+    def __init__(self):
         self.status_code = 400
         self.error = "message-type-invalid"
-        self.errorString = "The type parameter is of incorrect type"
+        self.error_string = "The type parameter is of incorrect type"
 
 
-class APINotImplemented(API_Error):
-    def __init__(self, *args, **kwargs):
-        super(*args, **kwargs)
+class APINotImplemented(APIError):
+    def __init__(self):
         self.status_code = 501
         self.error = "api-not-implemented"
-        self.errorString = "API function not implemented"
+        self.error_string = "API function not implemented"
 
 
-class UserNotFound(API_Error):
-    def __init__(self, *args, **kwargs):
-        super(*args, **kwargs)
+class UserNotFound(APIError):
+    def __init__(self):
         self.status_code = 404
         self.error = "user-not-found"
-        self.errorString = "User not found"
+        self.error_string = "User not found"
 
 
-class AuthFailure(API_Error):
-    def __init__(self, *args, **kwargs):
-        super(*args, **kwargs)
+class AuthFailure(APIError):
+    def __init__(self):
         self.status_code = 401
         self.error = "authentication-failure"
-        self.errorString = (
-            "Authetication failure, invalid password or authentication token."
+        self.error_string = (
+            "Authentication failure, invalid password or authentication token."
         )
 
 
-class UserCreationFailure(API_Error):
-    def __init__(self, *args, **kwargs):
-        super(*args, **kwargs)
+class UserCreationFailure(APIError):
+    def __init__(self):
         self.status_code = 400
         self.error = "user-creation-failure"
-        self.errorString = "User creation failed. Possible duplicate credentials"
+        self.error_string = "User creation failed."
 
 
-class ThirdPartyError(API_Error):
-    def __init__(self, *args, **kwargs):
-        super(*args, **kwargs)
+class UsernameUnavailableError(APIError):
+    def __init__(self):
+        self.status_code = 409
+        self.error = "username-in-use"
+        self.error_string = "Username already in use."
+
+
+class EmailUnavailableError(APIError):
+    def __init__(self):
+        self.status_code = 409
+        self.error = "email-in-use"
+        self.error_string = "An account with this email already exists."
+
+
+class GroupJoinFailure(APIError):
+    def __init__(self):
+        self.status_code = 400
+        self.error = "group-join-failure"
+        self.error_string = "Could not join group."
+
+
+class ThirdPartyError(APIError):
+    def __init__(self):
         self.status_code = 503
         self.error = "third-party-error"
-        self.errorString = "Third-party API or service failed. Nothing we can do :("
+        self.error_string = f"Third-party API or service failed. Nothing we can do :("
 
 
-class APIJSONDecodeError(API_Error):
-    def __init__(self, *args, **kwargs):
-        super(*args, **kwargs)
+class APIJSONDecodeError(APIError):
+    def __init__(self):
         self.status_code = 503
         self.error = "json-decode-error"
-        self.errorString = "Failure to parse JSON"
+        self.error_string = "Failed to parse JSON"

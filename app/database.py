@@ -1,9 +1,11 @@
+from datetime import datetime, timedelta
 from re import I
 from typing import Any, Generator, Mapping
 from fastapi.security.oauth2 import OAuth2PasswordBearer
 from jose.constants import ALGORITHMS
 from pydantic.fields import Field
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, select, insert
+import sqlalchemy
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.orm.query import Query
 from config_handler import CONFIG
@@ -26,6 +28,7 @@ from fastapi.security.base import SecurityBase
 from pydantic import BaseModel
 import models
 
+ACCESS_TOKEN_EXPIRE_DELTA = timedelta(minutes=30)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = CONFIG["jwt_secret"]
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth")
@@ -42,16 +45,20 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
-def verify_password(user: models.User, plain_password: str):
-    return pwd_context.verify(plain_password, user.password_hash)
-
-
-def get_user_by_id(id: int, db: Session = Depends(get_db)):
-    return db.query(models.User).get(id)
-
-
-def decode_token(token: str) -> Mapping[str, Any]:
-    return jwt.decode(token, SECRET_KEY, ALGORITHMS.HS256)
+def create_token(subject: str):
+    return {
+        "access_token": jwt.encode(
+            {
+                "iss": "aaqc",
+                "iat": datetime.utcnow(),
+                "exp": datetime.utcnow() + ACCESS_TOKEN_EXPIRE_DELTA,
+                "sub": subject,
+            },
+            SECRET_KEY,
+            ALGORITHMS.HS256,
+        ),
+        "token_type": "bearer",
+    }
 
 
 def get_current_user(
@@ -61,6 +68,34 @@ def get_current_user(
     if not username:
         raise ValueError("User missing from database")
     return fetch_user(db, username)
+
+
+def create_group(
+    db: Session,
+    name: str,
+    user_id: int,
+):
+    cursor = db.execute(insert(models.Group).values(name=name))
+    db.execute(
+        insert(models.UserGroups).values(
+            user=user_id, group=cursor.inserted_primary_key[0], admin=True
+        )
+    )
+    db.commit()
+
+    return cursor.inserted_primary_key[0]
+
+
+def verify_password(user: models.User, plain_password: str):
+    return pwd_context.verify(plain_password, user.password_hash)
+
+
+def get_user_by_id(db: Session, id: int):
+    return db.query(models.User).get(id)
+
+
+def decode_token(token: str) -> Mapping[str, Any]:
+    return jwt.decode(token, SECRET_KEY, ALGORITHMS.HS256)
 
 
 def fetch_user(db, ident: str):

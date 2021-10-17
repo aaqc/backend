@@ -3,6 +3,7 @@ from jose.constants import ALGORITHMS
 from pydantic.networks import EmailStr
 from sqlalchemy.sql.functions import user
 from sqlalchemy.sql.operators import concat_op
+from database import create_group, create_token
 from models import Waypoint
 import schema
 import models
@@ -35,11 +36,11 @@ from sqlalchemy import func, insert, select, delete
 from jose import jwt
 from datetime import datetime, timedelta
 from errortypes import *
+from sqlalchemy.exc import SQLAlchemyError
 
 # JWT Secret
 SECRET_KEY = CONFIG["jwt_secret"]
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_DELTA = timedelta(minutes=30)
 
 logger: Logger
 app = FastAPI()
@@ -65,22 +66,18 @@ async def post_auth(
     if not user:
         raise UserNotFound
 
-    if not verify_password(user, data.password):
+    if not verify_password(user, form_data.password):
         raise AuthFailure
 
-    return {
-        "access_token": jwt.encode(
-            {
-                "iss": "aaqc",
-                "iat": datetime.utcnow(),
-                "exp": datetime.utcnow() + ACCESS_TOKEN_EXPIRE_DELTA,
-                "sub": user.username,
-            },
-            SECRET_KEY,
-            ALGORITHMS.HS256,
-        ),
-        "token_type": "bearer",
-    }
+    return create_token(user.username)
+
+
+@app.delete("/me", response_model=schema.BaseResponse)
+async def delete_user(
+    user: models.User = Depends(get_current_user), db: Session = Depends(get_db)
+):
+    db.query(models.User).filter(models.User.id == user.id).delete()
+    db.commit()
 
 
 @app.post("/groups/join/{group_id}")
@@ -89,27 +86,50 @@ async def join_group(
     user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    db.execute(insert(models.UserGroups).values(user=user.id, group=group_id))
+    try:
+        db.execute(insert(models.UserGroups).values(user=user.id, group=group_id))
+    except SQLAlchemyError:
+        raise GroupJoinFailure
     db.commit()
     return {"success": True}
 
 
-@app.post("/register")
+@app.post("/groups/new")
+async def _create_group(
+    data: schema.CreateGroup,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return create_group(db, data.name, current_user)
+
+
+@app.post("/register", response_model=schema.AuthResponse)
 async def create_new_user(data: schema.CreateUser, db: Session = Depends(get_db)):
     new_data = data.__dict__
 
     new_data["password_hash"] = bytes(pwd_context.hash(new_data["password"]), "utf8")
     del new_data["password"]
 
+    if db.query(models.User.email).filter_by(email=data.email).first() is not None:
+        raise EmailUnavailableError
+
+    if (
+        db.query(models.User.username).filter_by(username=data.username).first()
+        is not None
+    ):
+        raise UsernameUnavailableError
+
     expr = insert(models.User).values(**new_data)
 
     try:
-        db.execute(expr)
-        db.commit()
-    except (sqlalchemy.exc, sqlalchemy.orm.exc):
-        raise UserCreationFailure
+        cursor = db.execute(expr)
+        create_group(db, data.full_name + "'s Group", cursor.inserted_primary_key[0])
 
-    return {"success": True}  # TODO: return something useful
+    except SQLAlchemyError:
+        raise UserCreationFailure
+    db.commit()
+
+    return create_token(data.username)
 
 
 @app.get("/users", response_model=list[schema.BaseUser])

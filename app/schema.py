@@ -8,6 +8,10 @@ import pydantic
 from pydantic.networks import EmailStr
 
 
+class BaseResponse(BaseModel):
+    success: bool = True
+
+
 class AAQCBaseModel(BaseModel):
     id: int
 
@@ -69,16 +73,13 @@ class Group(AAQCBaseModel):
     members: list = []
 
 
+class CreateGroup(BaseModel):
+    name: str
+
+
 class UserLogin(BaseModel):
     identity: Union[str, EmailStr]
     password: str
-
-
-class UserCreate(BaseModel):
-    username: str
-    email: str
-    password: str
-    full_name: str
 
 
 class BaseGroup(AAQCBaseModel):
@@ -114,12 +115,12 @@ class FlightPath(AAQCBaseModel):
     waypoints: list[Waypoint]
 
 
-class AuthResponse(BaseModel):
+class AuthResponse(BaseResponse):
     token_type: Literal["bearer"]
     access_token: str
 
 
-models: list[Any] = [User, UserCreate, Group, Drone, FlightPath, Waypoint, BaseGroup]
+models: list[Any] = [User, Group, Drone, FlightPath, Waypoint, BaseGroup]
 
 for model in models:
     model.update_forward_refs()
