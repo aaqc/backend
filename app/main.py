@@ -247,8 +247,8 @@ async def get_weather(lat: float, lng: float):
     return weather
 
 
-@app.exception_handler(API_Error)
-async def api_error_handler(request: Request, exc: API_Error):
+@app.exception_handler(APIError)
+async def api_error_handler(request: Request, exc: APIError):
     return exc.compose_response()
 
 
