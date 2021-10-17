@@ -19,5 +19,7 @@
 		"cweijan.vscode-mysql-client2",
 		"eamodio.gitlens"
 	],
-	"postCreateCommand": "curl -L https://aka.ms/vsls-linux-prereq-script | sh"
+	"postCreateCommand": "curl -L https://aka.ms/vsls-linux-prereq-script | sh",
+	"postAttachCommand": "pkill -e uvicorn ; sleep 1 ; /start-reload.sh",
+	"shutdownAction": "stopCompose"
 }
