@@ -16,9 +16,11 @@ from starlette.responses import RedirectResponse
 from starlette.responses import PlainTextResponse
 from logging import Logger
 from json.decoder import JSONDecodeError
-from gateway import construct, construct_error, handle_message
+from gateway import construct, handle_message
 from fastapi.logger import logger
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, Request
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, Depends
+from fastapi.responses import JSONResponse
+from fastapi.security import OAuth2PasswordBearer
 from connection_manager import ConnectionManager
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
@@ -33,6 +35,8 @@ from database import (
 from sqlalchemy import func, insert, select, delete
 from jose import jwt
 from datetime import datetime, timedelta
+from errortypes import *
+from sqlalchemy.exc import SQLAlchemyError
 
 # JWT Secret
 SECRET_KEY = CONFIG["jwt_secret"]
@@ -58,9 +62,14 @@ async def post_auth(
     form_data: OAuth2PasswordRequestForm = Depends(),
 ):
     user = fetch_user(db, form_data.username)
-    if user and verify_password(user, form_data.password):
-        return create_token(user.username)
-    return None
+
+    if not user:
+        raise UserNotFound
+
+    if not verify_password(user, form_data.password):
+        raise AuthFailure
+
+    return create_token(user.username)
 
 
 @app.delete("/me", response_model=schema.BaseResponse)
@@ -93,7 +102,6 @@ async def _create_group(
 
 @app.post("/register", response_model=schema.AuthResponse)
 async def create_new_user(data: schema.CreateUser, db: Session = Depends(get_db)):
-
     new_data = data.__dict__
 
     new_data["password_hash"] = bytes(pwd_context.hash(new_data["password"]), "utf8")
@@ -101,8 +109,12 @@ async def create_new_user(data: schema.CreateUser, db: Session = Depends(get_db)
 
     expr = insert(models.User).values(**new_data)
 
-    db.execute(expr)
-    db.commit()
+    try:
+        db.execute(expr)
+        db.commit()
+    except SQLAlchemyError:
+        raise UserCreationFailure
+
     return create_token(data.username)
 
 
@@ -176,14 +188,14 @@ async def connect_client_to_gateway(websocket: WebSocket):
             try:
                 data = await websocket.receive_json()
             except JSONDecodeError:
-                await websocket.send_json(construct_error("json-decode-error"))
+                await websocket.send_json(APIJSONDecodeError().compose_response())
                 continue
 
             try:
                 await websocket.send_json(handle_message(data, manager))
             except Exception:
                 logger.error(format_exc())
-                await websocket.send_json(construct_error("generic-error"))
+                await websocket.send_json(GenericError().compose_response())
 
     except WebSocketDisconnect:
         await manager.disconnect_client(con_id)
@@ -219,6 +231,11 @@ def flightpath_distance(start: str, end: str):
 async def get_weather(lat: float, lng: float):
     weather = await weather_api.get_weather_at_coords(lat, lng)
     return weather
+
+
+@app.exception_handler(API_Error)
+async def api_error_handler(request: Request, exc: API_Error):
+    return exc.compose_response()
 
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from errortypes import *
 
 import math
 
@@ -84,6 +85,5 @@ async def get_waypoints(start_coords: tuple, end_coords: tuple, points: int):
             try:
                 waypoints = await response.json()
                 return waypoints
-            except Exception as err:
-                print(err)
-                return {"error": "Unable to get waypoints."}
+            except Exception:
+                raise ThirdPartyError("Unable to get waypoints")

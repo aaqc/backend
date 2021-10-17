@@ -21,5 +21,6 @@
 	],
 	"postCreateCommand": "curl -L https://aka.ms/vsls-linux-prereq-script | sh",
 	"postAttachCommand": "pkill -e uvicorn ; sleep 1 ; /start-reload.sh",
-	"shutdownAction": "stopCompose"
+	"overrideCommand": true,
+	"shutdownAction": "stopCompose",
 }

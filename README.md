@@ -13,7 +13,7 @@ Start the container with: `$ docker-compose up`<br>
 
 ## How to install and use with VSCode
 
-![Gif showing how to use](how-to-use.gif)
+<a href="how-to-use.gif" target="_blank"><img src="how-to-use.gif" alt="GIF Tutorial on how to do it" width="400px"></a>
 
 ## Start devserver in container in debug mode:
 

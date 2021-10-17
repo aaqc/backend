@@ -3,24 +3,7 @@ from typing import Any, Optional, Union
 from time import time_ns
 from handle_data import handle_data
 import typing
-
-error_msgs = {
-    "json-decode-error": "Message could not be parsed",
-    "message-type-missing": "The type parameter is missing",
-    "message-type-invalid": "The type parameter is of incorrect type (should be string)",
-    "not-implemeneted": "The message type is not implemented",
-    "generic-error": "Something went wrong, check logs",
-}
-
-error_types = {
-    NotImplementedError: "not-implemeneted",
-    TypeError: "message-type-invalid",
-    KeyError: "message-type-missing",
-}
-
-
-def construct_error(name: str):
-    return construct("error", {"message": error_msgs[name], "name": name})
+import error
 
 
 def construct(
@@ -50,4 +33,4 @@ def handle_message(message: Any, manager: ConnectionManager):
     try:
         return construct(*handle_data(manager, t), nonce)
     except (TypeError, NotImplementedError, KeyError) as error:
-        return construct_error(error_types[type(error)])
+        return error.compose_error(error)
