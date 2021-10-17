@@ -26,14 +26,12 @@ class API_Error(Exception):
 
 class GenericError(API_Error):
     def __init__(self, *args, **kwargs):
-        super(*args, **kwargs)
         self.error = "generic-error"
         self.errorString = "Something went wrong"
 
 
 class MessageTypeMissing(API_Error):
     def __init__(self, *args, **kwargs):
-        super(*args, **kwargs)
         self.status_code = 400
         self.error = "message-type-missing"
         self.errorString = "The type parameter is missing"
@@ -41,7 +39,6 @@ class MessageTypeMissing(API_Error):
 
 class MessageTypeInvalid(API_Error):
     def __init__(self, *args, **kwargs):
-        super(*args, **kwargs)
         self.status_code = 400
         self.error = "message-type-invalid"
         self.errorString = "The type parameter is of incorrect type"
@@ -49,7 +46,6 @@ class MessageTypeInvalid(API_Error):
 
 class APINotImplemented(API_Error):
     def __init__(self, *args, **kwargs):
-        super(*args, **kwargs)
         self.status_code = 501
         self.error = "api-not-implemented"
         self.errorString = "API function not implemented"
@@ -57,7 +53,6 @@ class APINotImplemented(API_Error):
 
 class UserNotFound(API_Error):
     def __init__(self, *args, **kwargs):
-        super(*args, **kwargs)
         self.status_code = 404
         self.error = "user-not-found"
         self.errorString = "User not found"
@@ -65,7 +60,6 @@ class UserNotFound(API_Error):
 
 class AuthFailure(API_Error):
     def __init__(self, *args, **kwargs):
-        super(*args, **kwargs)
         self.status_code = 401
         self.error = "authentication-failure"
         self.errorString = (
@@ -75,7 +69,6 @@ class AuthFailure(API_Error):
 
 class UserCreationFailure(API_Error):
     def __init__(self, *args, **kwargs):
-        super(*args, **kwargs)
         self.status_code = 400
         self.error = "user-creation-failure"
         self.errorString = "User creation failed. Possible duplicate credentials"
@@ -83,7 +76,6 @@ class UserCreationFailure(API_Error):
 
 class ThirdPartyError(API_Error):
     def __init__(self, *args, **kwargs):
-        super(*args, **kwargs)
         self.status_code = 503
         self.error = "third-party-error"
         self.errorString = "Third-party API or service failed. Nothing we can do :("
@@ -91,7 +83,6 @@ class ThirdPartyError(API_Error):
 
 class APIJSONDecodeError(API_Error):
     def __init__(self, *args, **kwargs):
-        super(*args, **kwargs)
         self.status_code = 503
         self.error = "json-decode-error"
         self.errorString = "Failure to parse JSON"
