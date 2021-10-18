@@ -116,6 +116,11 @@ class FlightPath(AAQCBaseModel):
 
 
 class AuthResponse(BaseResponse):
+    access_token: str
+    refresh_token: str
+
+
+class RefreshResponse(BaseResponse):
     token_type: Literal["bearer"]
     access_token: str
 

@@ -8,9 +8,9 @@ from sqlalchemy import create_engine, select, insert
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.orm.query import Query
-from auth import ACCESS_TOKEN_EXPIRE_DELTA
+from aaqc.auth import ACCESS_TOKEN_EXPIRE_DELTA
 from config_handler import CONFIG
-from models import (
+from aaqc.models import (
     Column,
     Drone,
     FlightPath,
@@ -27,7 +27,7 @@ from jose import jwt
 from fastapi import Depends, Header
 from fastapi.security.base import SecurityBase
 from pydantic import BaseModel
-import models
+import aaqc.models as models
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = CONFIG["jwt_secret"]

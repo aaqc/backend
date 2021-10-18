@@ -3,10 +3,10 @@ from jose.constants import ALGORITHMS
 from pydantic.networks import EmailStr
 from sqlalchemy.sql.functions import user
 from sqlalchemy.sql.operators import concat_op
-from database import create_group, create_token
-from models import Waypoint
+from aaqc.database import create_group
+from aaqc.models import Waypoint
 import schema
-import models
+import aaqc.models as models
 from config_handler import CONFIG
 import weather as weather_api
 import uvicorn
@@ -25,13 +25,8 @@ from connection_manager import ConnectionManager
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from database import (
-    get_db,
-    verify_password,
-    fetch_user,
-    get_current_user,
-    oauth2_scheme,
-)
+from aaqc.utils import use_db, auth, use_current_user, refresh
+from aaqc.database import fetch_user
 from sqlalchemy import func, insert, select, delete
 from jose import jwt
 from datetime import datetime, timedelta
@@ -50,31 +45,46 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 @app.get("/me", response_model=schema.User)
-async def get_index(user: models.User = Depends(get_current_user)):
+async def get_index(user: models.User = Depends(use_current_user)):
     return user
 
 
 @app.post("/auth", response_model=Union[schema.AuthResponse, None])
 async def post_auth(
-    # data: schema.UserLogin,
+    data: schema.UserLogin,
     # request: Request,
-    db: Session = Depends(get_db),
-    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(use_db),
+    # form_data: OAuth2PasswordRequestForm = Depends(),
 ):
-    user = fetch_user(db, form_data.username)
+    user = fetch_user(db, data.identity)
 
     if not user:
         raise UserNotFound
 
-    if not verify_password(user, form_data.password):
+    if not auth.verify_password(data.password, user.password_hash):
         raise AuthFailure
 
-    return create_token(user.username)
+    return {
+        "access_token": auth.create_access_token(user.username),
+        "refresh_token": auth.create_refresh_token(user.username),
+    }
+
+
+@app.post("/refresh", response_model=Union[schema.AuthResponse, None])
+async def post_refresh_auth(refresh_token: str, db: Session = Depends(use_db)):
+    ident = auth.decode_refresh_token(refresh_token)
+    if ident:
+        user = fetch_user(db, ident)
+        if user:
+            return {
+                "access_token": auth.create_access_token(user.username),
+                "refresh_token": auth.create_refresh_token(user.username),
+            }
 
 
 @app.delete("/me", response_model=schema.BaseResponse)
 async def delete_user(
-    user: models.User = Depends(get_current_user), db: Session = Depends(get_db)
+    user: models.User = Depends(use_current_user), db: Session = Depends(use_db)
 ):
     db.query(models.User).filter(models.User.id == user.id).delete()
     db.commit()
@@ -83,8 +93,8 @@ async def delete_user(
 @app.post("/groups/join/{group_id}")
 async def join_group(
     group_id: int,
-    user: models.User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    user: models.User = Depends(use_current_user),
+    db: Session = Depends(use_db),
 ):
     try:
         db.execute(insert(models.UserGroups).values(user=user.id, group=group_id))
@@ -97,14 +107,14 @@ async def join_group(
 @app.post("/groups/new")
 async def _create_group(
     data: schema.CreateGroup,
-    current_user: models.User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: models.User = Depends(use_current_user),
+    db: Session = Depends(use_db),
 ):
     return create_group(db, data.name, current_user)
 
 
 @app.post("/register", response_model=schema.AuthResponse)
-async def create_new_user(data: schema.CreateUser, db: Session = Depends(get_db)):
+async def create_new_user(data: schema.CreateUser, db: Session = Depends(use_db)):
     new_data = data.__dict__
 
     new_data["password_hash"] = bytes(pwd_context.hash(new_data["password"]), "utf8")
@@ -129,11 +139,14 @@ async def create_new_user(data: schema.CreateUser, db: Session = Depends(get_db)
         raise UserCreationFailure
     db.commit()
 
-    return create_token(data.username)
+    return {
+        "access_token": auth.create_access_token(data.username),
+        "refresh_token": auth.create_refresh_token(data.username),
+    }
 
 
 @app.get("/users", response_model=list[schema.BaseUser])
-async def get_users(db: Session = Depends(get_db)):
+async def get_users(db: Session = Depends(use_db)):
     users = db.query(
         models.User.id, models.User.email, models.User.full_name, models.User.username
     ).all()
@@ -141,33 +154,33 @@ async def get_users(db: Session = Depends(get_db)):
 
 
 @app.get("/users/{id}", response_model=schema.User)
-async def get_user_by_id(id: int, db: Session = Depends(get_db)):
+async def get_user_by_id(id: int, db: Session = Depends(use_db)):
     user_by_id = db.query(models.User).filter(models.User.id == id).first()
     user_by_id = user_by_id.__dict__ if user_by_id != None else schema.User.__dict__
     return user_by_id
 
 
 @app.get("/groups", response_model=list[schema.BaseGroup])
-async def get_groups(db: Session = Depends(get_db)):
+async def get_groups(db: Session = Depends(use_db)):
     groups = list(map(lambda x: x.__dict__, db.query(models.Group).all()))
     return groups
 
 
 @app.get("/group/{id}", response_model=schema.Group)
-async def get_group_by_id(id: int, db: Session = Depends(get_db)):
+async def get_group_by_id(id: int, db: Session = Depends(use_db)):
     group_by_id = db.query(models.Group).filter(models.Group.id == id).first()
     group_by_id = group_by_id.__dict__ if group_by_id != None else schema.Group.__dict__
     return group_by_id
 
 
 @app.get("/drones")
-async def get_drones(db: Session = Depends(get_db)):
+async def get_drones(db: Session = Depends(use_db)):
     drones = list(map(lambda x: x.__dict__, db.query(models.Drone).all()))
     return drones
 
 
 @app.get("/flightpaths/{drone_id}")
-async def get_paths(drone_id: int, db: Session = Depends(get_db)):
+async def get_paths(drone_id: int, db: Session = Depends(use_db)):
     drones = (
         db.query(models.FlightPath).filter(models.FlightPath.drone == drone_id).all()
     )
@@ -175,7 +188,7 @@ async def get_paths(drone_id: int, db: Session = Depends(get_db)):
 
 
 @app.get("/waypoints/{flightpath_id}")
-async def get_waypoints(flightpath_id: int, db: Session = Depends(get_db)):
+async def get_waypoints(flightpath_id: int, db: Session = Depends(use_db)):
     waypoint = (
         db.query(models.Waypoint).filter(models.Waypoint.path == flightpath_id).first()
     )
