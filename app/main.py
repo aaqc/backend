@@ -36,7 +36,7 @@ manager = ConnectionManager()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-
+# alve
 @app.post("/auth/email", response_model=schema.AuthResponse)
 async def post_auth_email(email: EmailStr, password: str):
     pass
