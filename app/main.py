@@ -1,3 +1,5 @@
+from typing import Union
+from jose.constants import ALGORITHMS
 from pydantic.networks import EmailStr
 from sqlalchemy.sql.functions import user
 from sqlalchemy.sql.operators import concat_op
@@ -21,10 +23,12 @@ from connection_manager import ConnectionManager
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from database import get_db
+from database import get_db, user_by_email, verify_password
 from sqlalchemy import func, insert, select
+from jose import jwt
+from datetime import datetime, timedelta
 
-# da
+# JWT Secret
 SECRET_KEY = CONFIG["jwt_secret"]
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -35,7 +39,7 @@ app = FastAPI()
 manager = ConnectionManager()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
+# alve change
 # alve
 @app.post("/auth/email", response_model=schema.AuthResponse)
 async def post_auth_email(email: EmailStr, password: str):
@@ -43,7 +47,7 @@ async def post_auth_email(email: EmailStr, password: str):
 
 
 @app.post("/auth/username", response_model=schema.AuthResponse)
-async def post_auth_username(username: str, password: str):
+async def post_auth_username(data: schema.UserLoginUsername):
     pass
 
 
@@ -62,7 +66,7 @@ async def create_new_user(data: schema.CreateUser, db: Session = Depends(get_db)
     return {"success": True}
 
 
-@app.get("/users", response_model=list[schema.Users])
+@app.get("/users", response_model=list[schema.BaseUser])
 async def get_users(db: Session = Depends(get_db)):
     users = db.query(
         models.User.id, models.User.email, models.User.full_name, models.User.username
@@ -77,7 +81,7 @@ async def get_user_by_id(id: int, db: Session = Depends(get_db)):
     return user_by_id
 
 
-@app.get("/groups", response_model=list[schema.Groups])
+@app.get("/groups", response_model=list[schema.BaseGroup])
 async def get_groups(db: Session = Depends(get_db)):
     groups = list(map(lambda x: x.__dict__, db.query(models.Group).all()))
     return groups
@@ -97,7 +101,7 @@ async def get_drones(db: Session = Depends(get_db)):
 
 
 @app.get("/flightpaths/{drone_id}")
-async def get_drones(drone_id: int, db: Session = Depends(get_db)):
+async def get_paths(drone_id: int, db: Session = Depends(get_db)):
     drones = (
         db.query(models.FlightPath).filter(models.FlightPath.drone == drone_id).all()
     )

@@ -16,6 +16,7 @@
 	"extensions": [
 		"ms-vsliveshare.vsliveshare",
 		"ms-python.python",
-		"cweijan.vscode-mysql-client2"
+		"cweijan.vscode-mysql-client2",
+		"eamodio.gitlens"
 	],
 }

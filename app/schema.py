@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pydantic import BaseModel, validator
-from typing import Any, List, Optional
+from typing import Any, List, Literal, Optional, Union
 from pydantic import BaseModel
 from typing import Any, Optional
 import pydantic
@@ -47,34 +47,14 @@ class CreateUser(BaseModel):
         return value
 
 
-# Many users
-class Users(AAQCBaseModel):
-    id: int = None
-    email: EmailStr = None
-    full_name: str = None
-    username: str = None
-
-
 # One user
-class User(BaseModel):
-    email: EmailStr = None
-    username: str = None
-    id: int = None
-    full_name: str = None
+class User(BaseUser):
     groups: List = []
 
 
-# Many groups
-class Groups(BaseModel):
-    name: str = None
-    id: int = None
-    members: list = []
-
-
 # One group
-class Group(BaseModel):
-    name: str = None
-    id: int = None
+class Group(AAQCBaseModel):
+    name: str
     members: list = []
 
 
@@ -132,7 +112,8 @@ class FlightPath(AAQCBaseModel):
 
 
 class AuthResponse(BaseModel):
-    token: str
+    token_type: Literal["bearer"]
+    access_token: str
 
 
 models: list[Any] = [User, UserCreate, Group, Drone, FlightPath, Waypoint, BaseGroup]
