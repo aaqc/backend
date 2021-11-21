@@ -3,7 +3,7 @@ from typing import Any, Optional, Union
 from time import time_ns
 from handle_data import handle_data
 import typing
-import error
+import aaqc.error
 
 
 def construct(

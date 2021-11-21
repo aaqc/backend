@@ -1,40 +1,13 @@
-from fastapi.exceptions import HTTPException
-from starlette.requests import Request
+from fastapi.security import oauth2
+from .errortypes import AuthFailure
 from . import models
-from typing import Generator, Optional
+from typing import Generator
 from sqlalchemy.orm.session import Session
 from fastapi import Depends
-from starlette.status import HTTP_401_UNAUTHORIZED
-from .auth import Auth
+from .auth import verify_password, decode_token
 from .database import fetch_user
 
-auth = Auth()
-
-
-class Token:
-    def __init__(self, scope: str):
-        self.scope = scope
-
-    async def __call__(self, request: Request) -> str:
-        authorization: str = request.headers.get("Authorization")
-        if not authorization:
-            raise HTTPException(
-                status_code=HTTP_401_UNAUTHORIZED,
-                detail="Missing valid authentication header",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        scope, param = authorization.split(" ")
-        if scope != self.scope:
-            raise HTTPException(
-                status_code=HTTP_401_UNAUTHORIZED,
-                detail="Authentication header is not containing a bearer token",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        return param
-
-
-bearer = Token("bearer")
-refresh = Token("refresh")
+oauth2_scheme = oauth2.OAuth2PasswordBearer(tokenUrl="auth")
 
 
 def use_db() -> Generator[Session, None, None]:
@@ -46,8 +19,21 @@ def use_db() -> Generator[Session, None, None]:
         db.close()
 
 
-def use_current_user(token: str = Depends(bearer), db: Session = Depends(use_db)):
-    subject = auth.decode_access_token(token)
+def check_login(db: Session, ident: str, password: str):
+    user = fetch_user(db, ident)
+
+    if user:
+        password_correct = verify_password(password, user.password_hash)
+        if not password_correct:
+            raise AuthFailure
+        return True
+    return False
+
+
+def use_current_user(
+    token: str = Depends(oauth2_scheme), db: Session = Depends(use_db)
+):
+    subject = decode_token(token)
 
     if not subject:
         raise ValueError("Token invalid")

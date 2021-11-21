@@ -1,36 +1,27 @@
-from typing import Union
-from jose.constants import ALGORITHMS
-from pydantic.networks import EmailStr
-from sqlalchemy.sql.functions import user
-from sqlalchemy.sql.operators import concat_op
-from aaqc.database import create_group
-from aaqc.models import Waypoint
+import traceback
+from fastapi.security import oauth2
+from aaqc.auth import create_token, decode_token
+from aaqc.database import create_group, fetch_user
+from aaqc.utils import use_current_user, check_login
 import schema
 import aaqc.models as models
 from config_handler import CONFIG
 import weather as weather_api
 import uvicorn
 import flightpath
-from traceback import format_exc
-from starlette.responses import RedirectResponse
+from traceback import format_exc, print_exc
 from starlette.responses import PlainTextResponse
 from logging import Logger
 from json.decoder import JSONDecodeError
 from gateway import construct, handle_message
 from fastapi.logger import logger
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, Depends
-from fastapi.responses import JSONResponse
-from fastapi.security import OAuth2PasswordBearer
 from connection_manager import ConnectionManager
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from aaqc.utils import use_db, auth, use_current_user, refresh
-from aaqc.database import fetch_user
-from sqlalchemy import func, insert, select, delete
-from jose import jwt
-from datetime import datetime, timedelta
-from errortypes import *
+from aaqc.utils import use_db
+from sqlalchemy import insert
+from aaqc.errortypes import *
 from sqlalchemy.exc import SQLAlchemyError
 
 # JWT Secret
@@ -39,6 +30,8 @@ ALGORITHM = "HS256"
 
 logger: Logger
 app = FastAPI()
+oauth2_scheme = oauth2.OAuth2PasswordBearer(tokenUrl="auth")
+
 
 manager = ConnectionManager()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -49,36 +42,33 @@ async def get_index(user: models.User = Depends(use_current_user)):
     return user
 
 
-@app.post("/auth", response_model=Union[schema.AuthResponse, None])
+@app.post("/auth")
 async def post_auth(
-    data: schema.UserLogin,
+    form_data: oauth2.OAuth2PasswordRequestForm = Depends(),
     # request: Request,
     db: Session = Depends(use_db),
     # form_data: OAuth2PasswordRequestForm = Depends(),
 ):
-    user = fetch_user(db, data.identity)
+    user = fetch_user(db, form_data.username)
 
     if not user:
         raise UserNotFound
 
-    if not auth.verify_password(data.password, user.password_hash):
+    if not check_login(db, form_data.username, form_data.password):
         raise AuthFailure
 
-    return {
-        "access_token": auth.create_access_token(user.email),
-        "refresh_token": auth.create_refresh_token(user.email),
-    }
+    return {"access_token": create_token(user.email), "token_type": "bearer"}
 
 
-@app.post("/refresh", response_model=Union[schema.AuthResponse, None])
-async def post_refresh_auth(refresh_token: str, db: Session = Depends(use_db)):
-    ident = auth.decode_refresh_token(refresh_token)
+@app.post("/refresh", response_model=schema.AuthResponse)
+async def post_refresh_auth(old_token: str, db: Session = Depends(use_db)):
+    ident = decode_token(old_token)
     if ident:
         user = fetch_user(db, ident)
         if user:
             return {
-                "access_token": auth.create_access_token(user.email),
-                "refresh_token": auth.create_refresh_token(user.email),
+                "access_token": create_token(user.email),
+                "token_type": "bearer",
             }
 
 
@@ -128,13 +118,13 @@ async def create_new_user(data: schema.CreateUser, db: Session = Depends(use_db)
         cursor = db.execute(expr)
         create_group(db, data.full_name + "'s Group", cursor.inserted_primary_key[0])
 
-    except SQLAlchemyError:
+    except SQLAlchemyError as error:
+        print_exc()
         raise UserCreationFailure
     db.commit()
 
     return {
-        "access_token": auth.create_access_token(data.email),
-        "refresh_token": auth.create_refresh_token(data.email),
+        "access_token": create_token(data.email),
     }
 
 

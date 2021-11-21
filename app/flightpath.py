@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from errortypes import *
+from aaqc.errortypes import *
 
 import math
 
