@@ -47,8 +47,8 @@ def use_db() -> Generator[Session, None, None]:
 
 
 def use_current_user(token: str = Depends(bearer), db: Session = Depends(use_db)):
-    username = auth.decode_access_token(token)
+    subject = auth.decode_access_token(token)
 
-    if not username:
+    if not subject:
         raise ValueError("Token invalid")
-    return fetch_user(db, username)
+    return fetch_user(db, subject)

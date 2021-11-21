@@ -4,12 +4,7 @@ from . import models
 
 
 def fetch_user(db: Session, ident: str):
-    query = db.query(models.User)
-    if "@" in ident:
-        query = query.filter(models.User.email == ident)
-    else:
-        query = query.filter(models.User.username == ident)
-    return query.one_or_none()
+    return db.query(models.User).filter(models.User.email == ident).one_or_none()
 
 
 def get_user_by_id(db: Session, id: int):

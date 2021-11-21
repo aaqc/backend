@@ -74,13 +74,6 @@ class UserCreationFailure(APIError):
         self.error_string = "User creation failed."
 
 
-class UsernameUnavailableError(APIError):
-    def __init__(self):
-        self.status_code = 409
-        self.error = "username-in-use"
-        self.error_string = "Username already in use."
-
-
 class EmailUnavailableError(APIError):
     def __init__(self):
         self.status_code = 409

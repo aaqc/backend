@@ -65,8 +65,8 @@ async def post_auth(
         raise AuthFailure
 
     return {
-        "access_token": auth.create_access_token(user.username),
-        "refresh_token": auth.create_refresh_token(user.username),
+        "access_token": auth.create_access_token(user.email),
+        "refresh_token": auth.create_refresh_token(user.email),
     }
 
 
@@ -77,8 +77,8 @@ async def post_refresh_auth(refresh_token: str, db: Session = Depends(use_db)):
         user = fetch_user(db, ident)
         if user:
             return {
-                "access_token": auth.create_access_token(user.username),
-                "refresh_token": auth.create_refresh_token(user.username),
+                "access_token": auth.create_access_token(user.email),
+                "refresh_token": auth.create_refresh_token(user.email),
             }
 
 
@@ -122,13 +122,6 @@ async def create_new_user(data: schema.CreateUser, db: Session = Depends(use_db)
 
     if db.query(models.User.email).filter_by(email=data.email).first() is not None:
         raise EmailUnavailableError
-
-    if (
-        db.query(models.User.username).filter_by(username=data.username).first()
-        is not None
-    ):
-        raise UsernameUnavailableError
-
     expr = insert(models.User).values(**new_data)
 
     try:
@@ -140,16 +133,14 @@ async def create_new_user(data: schema.CreateUser, db: Session = Depends(use_db)
     db.commit()
 
     return {
-        "access_token": auth.create_access_token(data.username),
-        "refresh_token": auth.create_refresh_token(data.username),
+        "access_token": auth.create_access_token(data.email),
+        "refresh_token": auth.create_refresh_token(data.email),
     }
 
 
 @app.get("/users", response_model=list[schema.BaseUser])
 async def get_users(db: Session = Depends(use_db)):
-    users = db.query(
-        models.User.id, models.User.email, models.User.full_name, models.User.username
-    ).all()
+    users = db.query(models.User.id, models.User.email, models.User.full_name).all()
     return users
 
 

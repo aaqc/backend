@@ -100,12 +100,7 @@ def decode_token(token: str) -> Mapping[str, Any]:
 
 def fetch_user(db, ident: str):
     print(ident, db)
-    query = db.query(models.User)
-    if "@" in ident:
-        query = query.filter(models.User.email == ident)
-    else:
-        query = query.filter(models.User.username == ident)
-    return query.one_or_none()
+    return db.query(models.User).filter(models.User.email == ident).one_or_none()
 
 
 # def authenticate_user(fake_db, username: str, password: str):
