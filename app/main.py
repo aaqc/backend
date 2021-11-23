@@ -3,20 +3,19 @@ from fastapi.security import oauth2
 from aaqc.auth import create_token, decode_token
 from aaqc.database import create_group, fetch_user
 from aaqc.utils import use_current_user, check_login
-import schema
+import aaqc.schema as schema
 import aaqc.models as models
 from config_handler import CONFIG
-import weather as weather_api
+import aaqc.api.flightpath as flightpath
 import uvicorn
-import flightpath
 from traceback import format_exc, print_exc
 from starlette.responses import PlainTextResponse
 from logging import Logger
 from json.decoder import JSONDecodeError
-from gateway import construct, handle_message
+from aaqc.ws.gateway import construct, handle_message
 from fastapi.logger import logger
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, Depends
-from connection_manager import ConnectionManager
+from aaqc.ws.connection_manager import ConnectionManager
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from aaqc.utils import use_db
@@ -237,7 +236,7 @@ def flightpath_distance(start: str, end: str):
 
 @app.get("/get_weather_at_coords")
 async def get_weather(lat: float, lng: float):
-    weather = await weather_api.get_weather_at_coords(lat, lng)
+    weather = await flightpath.get_weather_at_coords(lat, lng)
     return weather
 
 

@@ -1,10 +1,14 @@
 #!/usr/bin/python
-from aaqc.errortypes import *
+from ..errortypes import *
 
 import math
 
 import aiohttp
 
+import asyncio
+from config_handler import CONFIG
+from typing import Awaitable
+from typing import Any
 from config_handler import CONFIG
 
 google_maps_token = CONFIG["api_keys"]["google"]
@@ -87,3 +91,13 @@ async def get_waypoints(start_coords: tuple, end_coords: tuple, points: int):
                 return waypoints
             except Exception:
                 raise ThirdPartyError
+
+
+async def get_weather_at_coords(lat: float, lng: float):
+    try:
+        url = f"https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lng}&appid={weather_api_token}"
+        async with aiohttp.ClientSession() as client:
+            r = await client.get(url)
+            return await r.json()
+    except:
+        return {"status": "error"}
