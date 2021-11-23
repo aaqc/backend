@@ -88,6 +88,13 @@ class GroupJoinFailure(APIError):
         self.error_string = "Could not join group."
 
 
+class GroupNotFound(APIError):
+    def __init__(self):
+        self.status_code = 404
+        self.error = "group-not-found"
+        self.error_string = "Group not found."
+
+
 class ThirdPartyError(APIError):
     def __init__(self):
         self.status_code = 503

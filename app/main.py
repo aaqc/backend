@@ -5,6 +5,7 @@ from aaqc.database import create_group, fetch_user
 from aaqc.utils import use_current_user, check_login
 import aaqc.schema as schema
 import aaqc.models as models
+from aaqc.errortypes import GroupNotFound
 from config_handler import CONFIG
 import aaqc.api.flightpath as flightpath
 import uvicorn
@@ -127,9 +128,9 @@ async def create_new_user(data: schema.CreateUser, db: Session = Depends(use_db)
     }
 
 
-@app.get("/users", response_model=list[schema.BaseUser])
+@app.get("/users", response_model=list[schema.User])
 async def get_users(db: Session = Depends(use_db)):
-    users = db.query(models.User.id, models.User.email, models.User.full_name).all()
+    users = db.query(models.User).all()
     return users
 
 
@@ -140,7 +141,7 @@ async def get_user_by_id(id: int, db: Session = Depends(use_db)):
     return user_by_id
 
 
-@app.get("/groups", response_model=list[schema.BaseGroup])
+@app.get("/groups", response_model=list[schema.Group])
 async def get_groups(db: Session = Depends(use_db)):
     groups = list(map(lambda x: x.__dict__, db.query(models.Group).all()))
     return groups
@@ -148,8 +149,9 @@ async def get_groups(db: Session = Depends(use_db)):
 
 @app.get("/group/{id}", response_model=schema.Group)
 async def get_group_by_id(id: int, db: Session = Depends(use_db)):
-    group_by_id = db.query(models.Group).filter(models.Group.id == id).first()
-    group_by_id = group_by_id.__dict__ if group_by_id != None else schema.Group.__dict__
+    group_by_id = db.query(models.Group).filter(models.Group.id == id).one_or_none()
+    if not group_by_id:
+        raise GroupNotFound
     return group_by_id
 
 

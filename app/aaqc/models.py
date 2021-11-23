@@ -44,8 +44,9 @@ class Group(Base):
     members = relationship(
         "User",
         secondary=UserGroups,
-        lazy="subquery",
-        backref=backref("all_members", lazy=True),
+        back_populates="groups",
+        lazy="subquery"
+        # backref=backref("all_members", lazy=True),
     )
 
 
@@ -59,8 +60,9 @@ class User(Base):
     groups = relationship(
         "Group",
         secondary=UserGroups,
-        lazy="subquery",
-        backref=backref("all_groups", lazy=True),
+        back_populates="members",
+        lazy="subquery"
+        # backref=backref("all_groups", lazy=True),
     )
 
 
