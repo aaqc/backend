@@ -44,8 +44,9 @@ class Group(Base):
     members = relationship(
         "User",
         secondary=UserGroups,
-        lazy="subquery",
-        backref=backref("all_members", lazy=True),
+        back_populates="groups",
+        lazy="subquery"
+        # backref=backref("all_members", lazy=True),
     )
 
 
@@ -53,15 +54,15 @@ class User(Base):
     __tablename__ = "Users"
 
     id = Column(INTEGER(10), primary_key=True)
-    username = Column(String(255), nullable=False, unique=True)
     email = Column(String(255), nullable=False, unique=True)
     password_hash = deferred(Column(BINARY(60), nullable=False))
-    full_name = Column(String(255), nullable=False)
+    name = Column(String(255), nullable=False)
     groups = relationship(
         "Group",
         secondary=UserGroups,
-        lazy="subquery",
-        backref=backref("all_groups", lazy=True),
+        back_populates="members",
+        lazy="subquery"
+        # backref=backref("all_groups", lazy=True),
     )
 
 

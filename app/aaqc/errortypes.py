@@ -74,13 +74,6 @@ class UserCreationFailure(APIError):
         self.error_string = "User creation failed."
 
 
-class UsernameUnavailableError(APIError):
-    def __init__(self):
-        self.status_code = 409
-        self.error = "username-in-use"
-        self.error_string = "Username already in use."
-
-
 class EmailUnavailableError(APIError):
     def __init__(self):
         self.status_code = 409
@@ -93,6 +86,13 @@ class GroupJoinFailure(APIError):
         self.status_code = 400
         self.error = "group-join-failure"
         self.error_string = "Could not join group."
+
+
+class GroupNotFound(APIError):
+    def __init__(self):
+        self.status_code = 404
+        self.error = "group-not-found"
+        self.error_string = "Group not found."
 
 
 class ThirdPartyError(APIError):

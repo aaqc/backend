@@ -11,7 +11,7 @@
 		"PORT": "80"
 	},
 	"forwardPorts": [
-		8000
+		8050
 	],
 	"extensions": [
 		"ms-vsliveshare.vsliveshare",

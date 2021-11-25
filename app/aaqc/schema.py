@@ -22,27 +22,14 @@ class AAQCBaseModelOrm(AAQCBaseModel):
 
 
 class BaseUser(AAQCBaseModel):
-    username: str
     email: EmailStr
-    full_name: str
+    name: str
 
 
 class CreateUser(BaseModel):
-    username: str
     email: EmailStr
     password: str
-    full_name: str
-
-    @validator("username")
-    def validate_username(cls, value: str):
-        if len(value) < 2:
-            raise ValueError("Username is too short, minimum length 2 character")
-        if not all(map(lambda x: x.isascii(), value)):
-            raise ValueError("Username can only contain ascii characters")
-        if "@" in value:
-            raise ValueError("Username can't contain '@'")
-
-        return value
+    name: str
 
     @validator("password")
     def validate_password(cls, value: str):
@@ -116,7 +103,6 @@ class FlightPath(AAQCBaseModel):
 
 
 class AuthResponse(BaseResponse):
-    token_type: Literal["bearer"]
     access_token: str
 
 

@@ -1,9 +1,9 @@
-from connection_manager import ConnectionManager
+from .connection_manager import ConnectionManager
 from typing import Any, Optional, Union
 from time import time_ns
 import typing
 
-from api_functions import functions
+from ..api.api_functions import functions
 
 
 def handle_data(manager: ConnectionManager, t: str) -> tuple[str, Any]:

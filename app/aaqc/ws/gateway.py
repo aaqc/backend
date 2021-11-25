@@ -1,9 +1,9 @@
-from connection_manager import ConnectionManager
+from .connection_manager import ConnectionManager
 from typing import Any, Optional, Union
 from time import time_ns
-from handle_data import handle_data
+from .handle_data import handle_data
 import typing
-import error
+from .. import error
 
 
 def construct(

@@ -2,7 +2,7 @@ from time import time_ns
 from typing import Awaitable
 import asyncio
 
-import flightpath
+from . import flightpath
 
 # async
 loop = asyncio.get_event_loop()

@@ -1,41 +1,27 @@
-from typing import Union
-from jose.constants import ALGORITHMS
-from pydantic.networks import EmailStr
-from sqlalchemy.sql.functions import user
-from sqlalchemy.sql.operators import concat_op
-from database import create_group, create_token
-from models import Waypoint
-import schema
-import models
+import traceback
+from fastapi.security import oauth2
+from aaqc.auth import create_token, decode_token
+from aaqc.database import create_group, fetch_user
+from aaqc.utils import use_current_user, check_login
+import aaqc.schema as schema
+import aaqc.models as models
+from aaqc.errortypes import GroupNotFound
 from config_handler import CONFIG
-import weather as weather_api
+import aaqc.api.flightpath as flightpath
 import uvicorn
-import flightpath
-from traceback import format_exc
-from starlette.responses import RedirectResponse
+from traceback import format_exc, print_exc
 from starlette.responses import PlainTextResponse
 from logging import Logger
 from json.decoder import JSONDecodeError
-from gateway import construct, handle_message
+from aaqc.ws.gateway import construct, handle_message
 from fastapi.logger import logger
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, Depends
-from fastapi.responses import JSONResponse
-from fastapi.security import OAuth2PasswordBearer
-from connection_manager import ConnectionManager
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from aaqc.ws.connection_manager import ConnectionManager
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from database import (
-    get_db,
-    verify_password,
-    fetch_user,
-    get_current_user,
-    oauth2_scheme,
-)
-from sqlalchemy import func, insert, select, delete
-from jose import jwt
-from datetime import datetime, timedelta
-from errortypes import *
+from aaqc.utils import use_db
+from sqlalchemy import insert
+from aaqc.errortypes import *
 from sqlalchemy.exc import SQLAlchemyError
 
 # JWT Secret
@@ -44,37 +30,51 @@ ALGORITHM = "HS256"
 
 logger: Logger
 app = FastAPI()
+oauth2_scheme = oauth2.OAuth2PasswordBearer(tokenUrl="auth")
+
 
 manager = ConnectionManager()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 @app.get("/me", response_model=schema.User)
-async def get_index(user: models.User = Depends(get_current_user)):
+async def get_index(user: models.User = Depends(use_current_user)):
     return user
 
 
-@app.post("/auth", response_model=Union[schema.AuthResponse, None])
+@app.post("/auth")
 async def post_auth(
-    # data: schema.UserLogin,
+    form_data: oauth2.OAuth2PasswordRequestForm = Depends(),
     # request: Request,
-    db: Session = Depends(get_db),
-    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(use_db),
+    # form_data: OAuth2PasswordRequestForm = Depends(),
 ):
     user = fetch_user(db, form_data.username)
 
     if not user:
         raise UserNotFound
 
-    if not verify_password(user, form_data.password):
+    if not check_login(db, form_data.username, form_data.password):
         raise AuthFailure
 
-    return create_token(user.username)
+    return {"access_token": create_token(user.email), "token_type": "bearer"}
+
+
+@app.post("/refresh", response_model=schema.AuthResponse)
+async def post_refresh_auth(old_token: str, db: Session = Depends(use_db)):
+    ident = decode_token(old_token)
+    if ident:
+        user = fetch_user(db, ident)
+        if user:
+            return {
+                "access_token": create_token(user.email),
+                "token_type": "bearer",
+            }
 
 
 @app.delete("/me", response_model=schema.BaseResponse)
 async def delete_user(
-    user: models.User = Depends(get_current_user), db: Session = Depends(get_db)
+    user: models.User = Depends(use_current_user), db: Session = Depends(use_db)
 ):
     db.query(models.User).filter(models.User.id == user.id).delete()
     db.commit()
@@ -83,8 +83,8 @@ async def delete_user(
 @app.post("/groups/join/{group_id}")
 async def join_group(
     group_id: int,
-    user: models.User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    user: models.User = Depends(use_current_user),
+    db: Session = Depends(use_db),
 ):
     try:
         db.execute(insert(models.UserGroups).values(user=user.id, group=group_id))
@@ -97,14 +97,14 @@ async def join_group(
 @app.post("/groups/new")
 async def _create_group(
     data: schema.CreateGroup,
-    current_user: models.User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: models.User = Depends(use_current_user),
+    db: Session = Depends(use_db),
 ):
     return create_group(db, data.name, current_user)
 
 
 @app.post("/register", response_model=schema.AuthResponse)
-async def create_new_user(data: schema.CreateUser, db: Session = Depends(get_db)):
+async def create_new_user(data: schema.CreateUser, db: Session = Depends(use_db)):
     new_data = data.__dict__
 
     new_data["password_hash"] = bytes(pwd_context.hash(new_data["password"]), "utf8")
@@ -112,62 +112,57 @@ async def create_new_user(data: schema.CreateUser, db: Session = Depends(get_db)
 
     if db.query(models.User.email).filter_by(email=data.email).first() is not None:
         raise EmailUnavailableError
-
-    if (
-        db.query(models.User.username).filter_by(username=data.username).first()
-        is not None
-    ):
-        raise UsernameUnavailableError
-
     expr = insert(models.User).values(**new_data)
 
     try:
         cursor = db.execute(expr)
-        create_group(db, data.full_name + "'s Group", cursor.inserted_primary_key[0])
+        create_group(db, data.name + "'s Group", cursor.inserted_primary_key[0])
 
-    except SQLAlchemyError:
+    except SQLAlchemyError as error:
+        print_exc()
         raise UserCreationFailure
     db.commit()
 
-    return create_token(data.username)
+    return {
+        "access_token": create_token(data.email),
+    }
 
 
-@app.get("/users", response_model=list[schema.BaseUser])
-async def get_users(db: Session = Depends(get_db)):
-    users = db.query(
-        models.User.id, models.User.email, models.User.full_name, models.User.username
-    ).all()
+@app.get("/users", response_model=list[schema.User])
+async def get_users(db: Session = Depends(use_db)):
+    users = db.query(models.User).all()
     return users
 
 
 @app.get("/users/{id}", response_model=schema.User)
-async def get_user_by_id(id: int, db: Session = Depends(get_db)):
+async def get_user_by_id(id: int, db: Session = Depends(use_db)):
     user_by_id = db.query(models.User).filter(models.User.id == id).first()
     user_by_id = user_by_id.__dict__ if user_by_id != None else schema.User.__dict__
     return user_by_id
 
 
-@app.get("/groups", response_model=list[schema.BaseGroup])
-async def get_groups(db: Session = Depends(get_db)):
+@app.get("/groups", response_model=list[schema.Group])
+async def get_groups(db: Session = Depends(use_db)):
     groups = list(map(lambda x: x.__dict__, db.query(models.Group).all()))
     return groups
 
 
 @app.get("/group/{id}", response_model=schema.Group)
-async def get_group_by_id(id: int, db: Session = Depends(get_db)):
-    group_by_id = db.query(models.Group).filter(models.Group.id == id).first()
-    group_by_id = group_by_id.__dict__ if group_by_id != None else schema.Group.__dict__
+async def get_group_by_id(id: int, db: Session = Depends(use_db)):
+    group_by_id = db.query(models.Group).filter(models.Group.id == id).one_or_none()
+    if not group_by_id:
+        raise GroupNotFound
     return group_by_id
 
 
 @app.get("/drones")
-async def get_drones(db: Session = Depends(get_db)):
+async def get_drones(db: Session = Depends(use_db)):
     drones = list(map(lambda x: x.__dict__, db.query(models.Drone).all()))
     return drones
 
 
 @app.get("/flightpaths/{drone_id}")
-async def get_paths(drone_id: int, db: Session = Depends(get_db)):
+async def get_paths(drone_id: int, db: Session = Depends(use_db)):
     drones = (
         db.query(models.FlightPath).filter(models.FlightPath.drone == drone_id).all()
     )
@@ -175,7 +170,7 @@ async def get_paths(drone_id: int, db: Session = Depends(get_db)):
 
 
 @app.get("/waypoints/{flightpath_id}")
-async def get_waypoints(flightpath_id: int, db: Session = Depends(get_db)):
+async def get_waypoints(flightpath_id: int, db: Session = Depends(use_db)):
     waypoint = (
         db.query(models.Waypoint).filter(models.Waypoint.path == flightpath_id).first()
     )
@@ -243,7 +238,7 @@ def flightpath_distance(start: str, end: str):
 
 @app.get("/get_weather_at_coords")
 async def get_weather(lat: float, lng: float):
-    weather = await weather_api.get_weather_at_coords(lat, lng)
+    weather = await flightpath.get_weather_at_coords(lat, lng)
     return weather
 
 
