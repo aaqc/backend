@@ -23,13 +23,13 @@ class AAQCBaseModelOrm(AAQCBaseModel):
 
 class BaseUser(AAQCBaseModel):
     email: EmailStr
-    full_name: str
+    name: str
 
 
 class CreateUser(BaseModel):
     email: EmailStr
     password: str
-    full_name: str
+    name: str
 
     @validator("password")
     def validate_password(cls, value: str):

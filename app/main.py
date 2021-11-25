@@ -116,7 +116,7 @@ async def create_new_user(data: schema.CreateUser, db: Session = Depends(use_db)
 
     try:
         cursor = db.execute(expr)
-        create_group(db, data.full_name + "'s Group", cursor.inserted_primary_key[0])
+        create_group(db, data.name + "'s Group", cursor.inserted_primary_key[0])
 
     except SQLAlchemyError as error:
         print_exc()

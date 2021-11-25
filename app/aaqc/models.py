@@ -56,7 +56,7 @@ class User(Base):
     id = Column(INTEGER(10), primary_key=True)
     email = Column(String(255), nullable=False, unique=True)
     password_hash = deferred(Column(BINARY(60), nullable=False))
-    full_name = Column(String(255), nullable=False)
+    name = Column(String(255), nullable=False)
     groups = relationship(
         "Group",
         secondary=UserGroups,
