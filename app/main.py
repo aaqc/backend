@@ -23,6 +23,7 @@ from aaqc.utils import use_db
 from sqlalchemy import insert
 from aaqc.errortypes import *
 from sqlalchemy.exc import SQLAlchemyError
+from fastapi.middleware.cors import CORSMiddleware
 
 # JWT Secret
 SECRET_KEY = CONFIG["jwt_secret"]
@@ -31,6 +32,22 @@ ALGORITHM = "HS256"
 logger: Logger
 app = FastAPI()
 oauth2_scheme = oauth2.OAuth2PasswordBearer(tokenUrl="auth")
+
+origins = [
+    "http://localhost",
+    "http://localhost:3000",
+    "https://dash.aaqc.ml",
+    "*"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 
 manager = ConnectionManager()
