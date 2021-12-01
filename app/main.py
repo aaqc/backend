@@ -33,12 +33,7 @@ logger: Logger
 app = FastAPI()
 oauth2_scheme = oauth2.OAuth2PasswordBearer(tokenUrl="auth")
 
-origins = [
-    "http://localhost",
-    "http://localhost:3000",
-    "https://dash.aaqc.ml",
-    "*"
-]
+origins = ["http://localhost", "http://localhost:3000", "https://dash.aaqc.ml", "*"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -47,7 +42,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 
 manager = ConnectionManager()
