@@ -6,8 +6,8 @@ pylint
 aiohttp
 aiodns
 PyYAML
-python - jose[cryptography]
-python - multipart
+python-jose[cryptography]
+python-multipart
 cryptography
 passlib[bcrypt]
 sqlalchemy
